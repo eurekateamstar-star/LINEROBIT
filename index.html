@@ -3,96 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>救災部署回報</title>
+    <title>救災回報系統</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f4f4f4; padding: 20px; }
-        h2 { text-align: center; color: #d32f2f; margin-bottom: 20px;}
-        label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px;}
-        select, input { width: 100%; padding: 15px; font-size: 18px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
-        .btn { width: 100%; padding: 18px; font-size: 20px; font-weight: bold; color: white; background-color: #d32f2f; border: none; border-radius: 8px; margin-top: 30px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .btn:active { background-color: #b71c1c; transform: scale(0.98); }
+        :root {
+            --line-green: #06C755;
+            --bg-gray: #F4F4F4;
+            --border-color: #EBEBEB;
+            --text-dark: #111111;
+            --text-gray: #888888;
+            --emergency-red: #FF5B5B;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "微軟正黑體", sans-serif; 
+            background-color: var(--bg-gray); 
+            margin: 0; padding: 0; 
+            color: var(--text-dark);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 頂部原生風格頁籤 */
+        .nav-tabs { 
+            display: flex; 
+            background: #ffffff; 
+            position: sticky; top: 0; z-index: 100; 
+            border-bottom: 1px solid var(--border-color);
+        }
+        .tab-btn { 
+            flex: 1; padding: 15px 0; 
+            text-align: center; font-size: 14px; 
+            color: var(--text-gray); 
+            cursor: pointer; 
+            position: relative;
+            transition: color 0.2s;
+        }
+        .tab-btn.active { color: var(--line-green); font-weight: bold; }
+        .tab-btn.active::after {
+            content: ""; position: absolute; bottom: 0; left: 15%; width: 70%;
+            height: 3px; background-color: var(--line-green); border-radius: 3px;
+        }
+
+        /* 容器與卡片佈局 */
+        .content-container { padding: 16px; display: none; animation: fadeIn 0.3s ease; }
+        .content-container.active { display: block; }
+
+        .card { 
+            background: #ffffff; 
+            border-radius: 12px; 
+            padding: 4px 16px; 
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .section-title { 
+            font-size: 13px; color: var(--text-gray); 
+            margin: 16px 0 8px 4px; font-weight: normal; 
+        }
+
+        /* 輸入項樣式 */
+        .form-item {
+            display: flex; align-items: center;
+            padding: 14px 0; border-bottom: 1px solid var(--border-color);
+        }
+        .form-item:last-child { border-bottom: none; }
+        .form-label { width: 100px; font-size: 16px; flex-shrink: 0; }
+        
+        select, input { 
+            flex-grow: 1; border: none; font-size: 16px; 
+            outline: none; background: transparent; text-align: right;
+            color: var(--line-green); padding: 0;
+            appearance: none; -webkit-appearance: none;
+        }
+        input::placeholder { color: #ccc; }
+
+        /* 按鈕樣式 */
+        .btn-group { padding: 16px; }
+        .btn { 
+            width: 100%; padding: 14px; border-radius: 25px; 
+            font-size: 16px; font-weight: bold; border: none; 
+            cursor: pointer; margin-bottom: 12px; transition: 0.2s;
+        }
+        .btn-primary { background-color: var(--line-green); color: white; }
+        .btn-outline { background-color: white; color: var(--emergency-red); border: 1px solid var(--emergency-red); }
+        .btn-leave { background-color: #f1f1f1; color: #555; }
+
+        .btn:active { opacity: 0.7; transform: scale(0.98); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .desc-text { font-size: 12px; color: var(--text-gray); text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <h2>🚒 快速部署回報</h2>
+    <div class="nav-tabs">
+        <div class="tab-btn active" onclick="switchTab(0)">部署回報</div>
+        <div class="tab-btn" onclick="switchTab(1)">撤離任務</div>
+        <div class="tab-btn" onclick="switchTab(2)">管理指令</div>
+    </div>
 
-    <label>1. 分隊名稱</label>
-    <select id="team">
-        <option value="中和分隊">中和分隊</option>
-        <option value="南勢分隊">南勢分隊</option>
-        <option value="海山分隊">海山分隊</option>
-        <option value="莒光分隊">莒光分隊</option>
-        <option value="新板分隊">新板分隊</option>
-    </select>
+    <!-- 1. 人員部署 -->
+    <div id="tab0" class="content-container active">
+        <div class="section-title">分隊資訊</div>
+        <div class="card">
+            <div class="form-item">
+                <span class="form-label">分隊名稱</span>
+                <select id="team">
+                    <option value="中和分隊">中和分隊</option>
+                    <option value="南勢分隊">南勢分隊</option>
+                    <option value="海山分隊">海山分隊</option>
+                    <option value="莒光分隊">莒光分隊</option>
+                    <option value="新板分隊">新板分隊</option>
+                </select>
+            </div>
+            <div class="form-item">
+                <span class="form-label">派遣人數</span>
+                <input type="number" id="people" value="5">
+            </div>
+        </div>
 
-    <label>2. 派遣人數 (輸入數字)</label>
-    <input type="number" id="people" placeholder="例如: 12" value="5">
+        <div class="section-title">部署細節</div>
+        <div class="card">
+            <div class="form-item">
+                <span class="form-label">地址末碼</span>
+                <input type="number" id="address" value="8">
+            </div>
+            <div class="form-item">
+                <span class="form-label">部署方位</span>
+                <select id="side">
+                    <option value="1面">1面 (前方)</option>
+                    <option value="2面">2面 (左方)</option>
+                    <option value="3面">3面 (後方)</option>
+                    <option value="4面">4面 (右方)</option>
+                    <option value="頂樓">頂樓</option>
+                    <option value="內部">內部</option>
+                </select>
+            </div>
+            <div class="form-item">
+                <span class="form-label">執行任務</span>
+                <select id="task">
+                    <option value="滅火">滅火</option>
+                    <option value="人命搜救">人命搜救</option>
+                    <option value="排煙">排煙</option>
+                    <option value="防護">防護</option>
+                </select>
+            </div>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="sendDeployment()">送出部署回報</button>
+        </div>
+    </div>
 
-    <label>3. 地址末碼 (輸入數字)</label>
-    <input type="number" id="address" placeholder="例如: 8" value="8">
+    <!-- 2. 分隊撤離 -->
+    <div id="tab1" class="content-container">
+        <div class="section-title">選擇要撤離的分隊</div>
+        <div class="card">
+            <div class="form-item">
+                <span class="form-label">分隊名稱</span>
+                <select id="leave_team">
+                    <option value="中和分隊">中和分隊</option>
+                    <option value="南勢分隊">南勢分隊</option>
+                    <option value="海山分隊">海山分隊</option>
+                    <option value="莒光分隊">莒光分隊</option>
+                    <option value="新板分隊">新板分隊</option>
+                </select>
+            </div>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-leave" style="color:var(--emergency-red); background:#ffebeb;" onclick="sendLeave()">確認撤離現場</button>
+            <p class="desc-text">點擊後，圖資看板將同步移除此分隊</p>
+        </div>
+    </div>
 
-    <label>4. 部署位置 (面)</label>
-    <select id="side">
-        <option value="1面">1面 (前方)</option>
-        <option value="2面">2面 (右方)</option>
-        <option value="3面">3面 (後方)</option>
-        <option value="4面">4面 (左方)</option>
-        <option value="頂樓">頂樓</option>
-    </select>
+    <!-- 3. 管理指令 -->
+    <div id="tab2" class="content-container">
+        <div class="section-title">開啟新任務</div>
+        <div class="card">
+            <div class="form-item">
+                <span class="form-label">火警類型</span>
+                <input type="text" id="task_type" placeholder="例如：建築物火警">
+            </div>
+            <div class="form-item">
+                <span class="form-label">現場地址</span>
+                <input type="text" id="task_addr" placeholder="例如：中正路100號">
+            </div>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-primary" style="background-color: var(--emergency-red);" onclick="sendStartTask()">🚩 開始任務</button>
+        </div>
 
-    <label>5. 執行任務</label>
-    <select id="task">
-        <option value="滅火">滅火</option>
-        <option value="人命搜救">人命搜救</option>
-        <option value="排煙">排煙</option>
-        <option value="破壞">破壞</option>
-        <option value="防護">防護</option>
-        <option value="水源">水源</option>
-    </select>
+        <div class="section-title">結案動作</div>
+        <div class="btn-group">
+            <button class="btn btn-leave" onclick="sendEndTask()">✅ 結束任務並存檔</button>
+        </div>
+    </div>
 
-    <button class="btn" onclick="sendReport()">一鍵回報出勤</button>
-
-    <!-- 載入 LINE LIFF SDK -->
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        // 初始化 LIFF (已填入你的專屬 ID)
         liff.init({ liffId: "2010239154-mvwJXGM7" }).then(() => {
-            // 確保使用者有登入 LINE
-            if (!liff.isLoggedIn()) {
-                liff.login();
-            }
-        }).catch(err => {
-            alert("初始化失敗，請檢查網路連線。");
+            if (!liff.isLoggedIn()) liff.login();
         });
 
-        function sendReport() {
-            // 防呆機制：如果不是在 LINE 聊天室裡面點開，就擋下來
-            if (!liff.isInClient()) {
-                alert("❌ 錯誤：請在 LINE 的聊天室裡面點擊選單，才能送出回報！");
-                return;
-            }
+        function switchTab(index) {
+            document.querySelectorAll('.content-container').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab' + index).classList.add('active');
+            document.querySelectorAll('.tab-btn')[index].classList.add('active');
+        }
 
-            // 抓取表單資料
+        function sendDeployment() {
             const team = document.getElementById('team').value;
             const people = document.getElementById('people').value + "人";
             const address = document.getElementById('address').value + "號";
             const side = document.getElementById('side').value;
             const task = document.getElementById('task').value;
+            sendLineMsg(`${team}.${people}.${address}.${side}.${task}`);
+        }
 
-            // 組合文字
-            const message = `${team}.${people}.${address}.${side}.${task}`;
+        function sendLeave() {
+            const team = document.getElementById('leave_team').value;
+            sendLineMsg(`${team}.離開`);
+        }
 
-            // 代替使用者發送訊息
-            liff.sendMessages([
-                { type: 'text', text: message }
-            ]).then(() => {
-                // 發送成功，關閉視窗
-                liff.closeWindow(); 
-            }).catch((err) => {
-                // 如果失敗，彈出真實的錯誤訊息！
-                alert("發送失敗！錯誤代碼：\n" + JSON.stringify(err));
-            });
+        function sendStartTask() {
+            const type = document.getElementById('task_type').value;
+            const addr = document.getElementById('task_addr').value;
+            if(!type || !addr) { alert("請填寫類型與地址"); return; }
+            sendLineMsg(`開始任務.${type}.${addr}`);
+        }
+
+        function sendEndTask() {
+            if(confirm("確定要結案嗎？此動作將存檔並清空圖資。")) {
+                sendLineMsg(`結束任務`);
+            }
+        }
+
+        function sendLineMsg(txt) {
+            if (!liff.isInClient()) {
+                alert("發送訊息：" + txt);
+                return;
+            }
+            liff.sendMessages([{ type: 'text', text: txt }])
+                .then(() => liff.closeWindow())
+                .catch(err => alert("發送失敗: " + err));
         }
     </script>
 </body>
