@@ -3,22 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>新北救災指揮面板</title>
+    <title>新北救災指揮系統</title>
     <style>
         :root {
             --line-green: #06C755; --bg-gray: #F4F4F4; --border-color: #EBEBEB;
             --text-dark: #111111; --text-gray: #888888; --emergency-red: #FF5B5B;
+            --warning-orange: #fd7e14;
         }
 
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; 
             background-color: var(--bg-gray); margin: 0; padding: 0; 
             color: var(--text-dark); height: 100vh; width: 100vw; overflow: hidden;
+            -webkit-user-select: none;
         }
 
         /* 導航列 */
         .nav-tabs { display: flex; background: #ffffff; position: fixed; top: 0; width: 100%; z-index: 999; border-bottom: 1px solid var(--border-color); }
-        .tab-btn { flex: 1; padding: 15px 0; text-align: center; font-size: 14px; color: var(--text-gray); position: relative; cursor: pointer; }
+        .tab-btn { flex: 1; padding: 15px 0; text-align: center; font-size: 14px; color: var(--text-gray); position: relative; cursor: pointer; transition: 0.3s; }
         .tab-btn.active { color: var(--line-green); font-weight: bold; }
         .tab-btn.active::after { content: ""; position: absolute; bottom: 0; left: 20%; width: 60%; height: 3px; background-color: var(--line-green); border-radius: 3px; }
 
@@ -26,30 +28,45 @@
         .swipe-wrapper::-webkit-scrollbar { display: none; }
         .page { flex: 0 0 100%; width: 100%; height: 100%; scroll-snap-align: start; padding: 70px 16px 40px 16px; box-sizing: border-box; overflow-y: auto; }
 
-        /* 卡片 */
+        /* 卡片設計 */
         .card { background: #ffffff; border-radius: 12px; padding: 4px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .section-title { font-size: 13px; color: var(--text-gray); margin: 16px 0 8px 4px; }
         .form-item { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border-color); }
         .form-item:last-child { border-bottom: none; }
-        .form-label { width: 90px; font-size: 15px; flex-shrink: 0; }
-        select, input { flex-grow: 1; border: none; font-size: 16px; outline: none; background: transparent; text-align: right; color: var(--line-green); appearance: none; }
+        .form-label { width: 90px; font-size: 15px; flex-shrink: 0; color: #444; }
+        select, input { flex-grow: 1; border: none; font-size: 16px; outline: none; background: transparent; text-align: right; color: var(--line-green); appearance: none; -webkit-appearance: none; }
 
         /* 人數計數器 */
-        .stepper { display: flex; align-items: center; background: #f8f8f8; border-radius: 8px; padding: 2px; }
-        .step-btn { width: 35px; height: 35px; border: none; background: white; border-radius: 6px; font-size: 20px; font-weight: bold; color: var(--line-green); cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .step-val { width: 40px; text-align: center; font-weight: bold; font-size: 16px; }
+        .stepper { display: flex; align-items: center; background: #f0f0f0; border-radius: 20px; padding: 2px; }
+        .step-btn { width: 32px; height: 32px; border: none; background: white; border-radius: 50%; font-size: 18px; font-weight: bold; color: var(--line-green); cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .step-val { width: 35px; text-align: center; font-weight: bold; font-size: 16px; color: var(--line-green); }
 
-        /* 按鈕 */
-        .btn { width: 100%; padding: 14px; border-radius: 25px; font-size: 16px; font-weight: bold; border: none; margin-top: 10px; cursor: pointer; }
+        /* 按鈕風格 */
+        .btn { width: 100%; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; border: none; margin-top: 10px; cursor: pointer; transition: 0.2s; }
+        .btn:active { opacity: 0.7; transform: scale(0.98); }
         .btn-primary { background-color: var(--line-green); color: white; }
         .btn-start { background-color: var(--emergency-red); color: white; }
-        .btn-end { background-color: #222; color: var(--emergency-red); border: 2px solid var(--emergency-red); box-shadow: 0 0 10px rgba(255,91,91,0.3); }
-        .btn-leave { background-color: #222; color: #fd7e14; border: 2px solid #fd7e14; box-shadow: 0 0 10px rgba(253,126,20,0.3); }
-        
-        .info-box { background: #fff9f0; border: 1px solid #ffeeba; border-radius: 8px; padding: 12px; margin-bottom: 16px; color: #856404; font-size: 14px; }
+        .btn-end { background-color: #222; color: var(--emergency-red); border: 2px solid var(--emergency-red); }
+        .btn-leave { background-color: #222; color: var(--warning-orange); border: 2px solid var(--warning-orange); }
+
+        /* 目前任務提示框 */
+        .info-box { background: #fff4e5; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 5px solid var(--warning-orange); }
+        .info-box b { color: #856404; display: block; font-size: 16px; }
+
+        /* 🟢 App Toast 提示框 */
+        #toast {
+            position: fixed; bottom: -60px; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85); color: white; padding: 12px 25px;
+            border-radius: 30px; font-size: 14px; z-index: 10000;
+            transition: bottom 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); white-space: nowrap;
+        }
+        #toast.show { bottom: 30px; }
     </style>
 </head>
 <body>
+
+    <div id="toast">提示訊息</div>
 
     <div class="nav-tabs">
         <div class="tab-btn active" data-idx="0">部署回報</div>
@@ -58,60 +75,53 @@
     </div>
 
     <div class="swipe-wrapper" id="swipe-container">
-        <!-- 頁面 0: 部署 -->
+        <!-- 部署頁面 -->
         <div class="page">
-            <div class="section-title">分隊資訊</div>
+            <div class="section-title">單位選擇</div>
             <div class="card">
-                <div class="form-item"><span class="form-label">大隊</span>
-                    <select id="deploy-brigade"></select>
-                </div>
-                <div class="form-item"><span class="form-label">分隊</span>
-                    <select id="deploy-team"></select>
-                </div>
+                <div class="form-item"><span class="form-label">大隊</span><select id="dep-b"></select></div>
+                <div class="form-item"><span class="form-label">分隊</span><select id="dep-t"></select></div>
                 <div class="form-item"><span class="form-label">派遣人數</span>
-                    <div class="stepper">
-                        <button class="step-btn" id="p-minus">-</button>
-                        <div class="step-val" id="people-val">5</div>
-                        <button class="step-btn" id="p-plus">+</button>
-                    </div>
+                    <div class="stepper"><button class="step-btn" id="minus">-</button><div class="step-val" id="p-val">5</div><button class="step-btn" id="plus">+</button></div>
                 </div>
             </div>
-            <div class="section-title">部署細節</div>
+            <div class="section-title">位置任務</div>
             <div class="card">
-                <div class="form-item"><span class="form-label">地址末碼</span><input type="text" id="address" placeholder="例如: 8"></div>
-                <div class="form-item"><span class="form-label">方位</span><select id="side">
-                    <option value="1面">1面 (前)</option><option value="2面">2面 (左)</option><option value="3面">3面 (後)</option><option value="4面">4面 (右)</option><option value="內部">內部</option>
+                <div class="form-item"><span class="form-label">地址末碼</span><input type="text" id="addr-in"></div>
+                <div class="form-item"><span class="form-label">方位</span><select id="side-in">
+                    <option value="1面">1面 (前)</option><option value="2面">2面 (左)</option><option value="3面">3面 (後)</option>
+                    <option value="4面">4面 (右)</option><option value="內部">內部</option>
                 </select></div>
-                <div class="form-item"><span class="form-label">任務</span><select id="task">
+                <div class="form-item"><span class="form-label">執行任務</span><select id="task-in">
                     <option value="滅火">滅火</option><option value="搜救">搜救</option><option value="排煙">排煙</option><option value="防護">防護</option>
                 </select></div>
             </div>
-            <button class="btn btn-primary" id="btn-deploy">送出部署回報</button>
+            <button class="btn btn-primary" id="go-deploy">確認部署回報</button>
         </div>
 
-        <!-- 頁面 1: 撤離 -->
+        <!-- 撤離頁面 -->
         <div class="page">
             <div class="section-title">選擇撤離單位</div>
             <div class="card">
-                <div class="form-item"><span class="form-label">大隊</span><select id="leave-brigade"></select></div>
-                <div class="form-item"><span class="form-label">分隊</span><select id="leave-team"></select></div>
+                <div class="form-item"><span class="form-label">大隊</span><select id="lv-b"></select></div>
+                <div class="form-item"><span class="form-label">分隊</span><select id="lv-t"></select></div>
             </div>
-            <button class="btn btn-leave" id="btn-leave">確認撤離現場</button>
+            <button class="btn btn-leave" id="go-leave">確認分隊撤離現場</button>
         </div>
 
-        <!-- 頁面 2: 管理指令 -->
+        <!-- 指令頁面 -->
         <div class="page">
-            <div id="active-task" style="display:none;">
-                <div class="info-box">🔥 目前任務：<br><b id="task-info">讀取中...</b></div>
-                <button class="btn btn-end" id="btn-end">✅ 結束任務並存檔</button>
+            <div id="task-active" style="display:none;">
+                <div class="info-box">目前執行任務：<br><b id="task-text">載入中...</b></div>
+                <button class="btn btn-end" id="go-end">✅ 結束任務結案存檔</button>
             </div>
-            <div id="new-task">
+            <div id="task-new">
                 <div class="section-title">開啟新任務</div>
                 <div class="card">
-                    <div class="form-item"><span class="form-label">火警類型</span><input type="text" id="t-type" placeholder="例如: 工廠火警"></div>
-                    <div class="form-item"><span class="form-label">地址</span><input type="text" id="t-addr" placeholder="例如: 文化路一段8號"></div>
+                    <div class="form-item"><span class="form-label">類型</span><input type="text" id="t-type" placeholder="例如: 工廠火警"></div>
+                    <div class="form-item"><span class="form-label">地址</span><input type="text" id="t-addr" placeholder="完整地址"></div>
                 </div>
-                <button class="btn btn-start" id="btn-start">🚩 開始任務</button>
+                <button class="btn btn-start" id="go-start">🚩 開始任務</button>
             </div>
         </div>
     </div>
@@ -125,7 +135,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 新北市消防分隊資料
         const fireData = {
             "第一大隊": ["板橋", "新板", "海山", "莒光", "溪崑", "民生"],
             "第二大隊": ["新莊", "中港", "福營", "五工", "泰山", "五股", "林口", "文化"],
@@ -137,66 +146,102 @@
             "特搜大隊": ["慈福", "德音", "秀峰", "秀山"]
         };
 
-        // 初始化下拉選單
-        function initSelect(bId, tId) {
-            const bSel = document.getElementById(bId);
-            const tSel = document.getElementById(tId);
-            for (let b in fireData) bSel.options.add(new Option(b, b));
-            bSel.onchange = () => {
-                tSel.innerHTML = "";
-                fireData[bSel.value].forEach(t => tSel.options.add(new Option(t + "分隊", t + "分隊")));
-            };
-            bSel.onchange();
+        // --- 功能：App 質感 Toast ---
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
         }
-        initSelect("deploy-brigade", "deploy-team");
-        initSelect("leave-brigade", "leave-team");
 
-        // 人數增減
+        // --- 功能：單位記憶與連動 ---
+        function setSquadPref(brigade, team) {
+            localStorage.setItem('last_b', brigade);
+            localStorage.setItem('last_t', team);
+            // 同步所有分頁選單
+            document.getElementById('dep-b').value = brigade;
+            document.getElementById('lv-b').value = brigade;
+            updateTeamOptions('dep-t', brigade);
+            updateTeamOptions('lv-t', brigade);
+            document.getElementById('dep-t').value = team;
+            document.getElementById('lv-t').value = team;
+        }
+
+        function updateTeamOptions(targetId, brigade) {
+            const sel = document.getElementById(targetId);
+            sel.innerHTML = "";
+            fireData[brigade].forEach(t => sel.options.add(new Option(t + "分隊", t + "分隊")));
+        }
+
+        function initDropdowns() {
+            const bSels = ['dep-b', 'lv-b'];
+            bSels.forEach(id => {
+                const sel = document.getElementById(id);
+                for (let b in fireData) sel.options.add(new Option(b, b));
+                sel.onchange = (e) => setSquadPref(e.target.value, fireData[e.target.value][0] + "分隊");
+            });
+
+            // 載入記憶值
+            const savedB = localStorage.getItem('last_b') || "第七大隊";
+            const savedT = localStorage.getItem('last_t') || "中和分隊";
+            setSquadPref(savedB, savedT);
+        }
+
+        // --- 核心邏輯 ---
         let pCount = 5;
-        const pVal = document.getElementById('people-val');
-        document.getElementById('p-plus').onclick = () => { pCount++; pVal.innerText = pCount; };
-        document.getElementById('p-minus').onclick = () => { if(pCount > 1) pCount--; pVal.innerText = pCount; };
+        document.getElementById('plus').onclick = () => { pCount++; document.getElementById('p-val').innerText = pCount; };
+        document.getElementById('minus').onclick = () => { if(pCount > 1) pCount--; document.getElementById('p-val').innerText = pCount; };
 
-        // 監聽任務狀態與地址
         onSnapshot(doc(db, "system_state", "current_task"), (snap) => {
-            const active = document.getElementById('active-task');
-            const newTask = document.getElementById('new-task');
+            const active = document.getElementById('task-active'), nw = document.getElementById('task-new');
             if (snap.exists()) {
-                const data = snap.data();
-                document.getElementById('task-info').innerText = `${data.type} / ${data.address}`;
-                // 地址自動帶入 (嘗試抓數字或全帶)
-                document.getElementById('address').value = data.address; 
-                active.style.display = 'block'; newTask.style.display = 'none';
+                document.getElementById('task-text').innerText = `${snap.data().type} / ${snap.data().address}`;
+                document.getElementById('addr-in').value = snap.data().address;
+                active.style.display = 'block'; nw.style.display = 'none';
             } else {
-                active.style.display = 'none'; newTask.style.display = 'block';
+                active.style.display = 'none'; nw.style.display = 'block';
             }
         });
 
-        // LIFF & 頁面切換
-        liff.init({ liffId: "2010239154-mvwJXGM7" }).then(() => { if(!liff.isLoggedIn()) liff.login(); });
+        liff.init({ liffId: "2010239154-mvwJXGM7" }).then(() => { if(!liff.isLoggedIn()) liff.login(); initDropdowns(); });
+
         const container = document.getElementById('swipe-container');
         const btns = document.querySelectorAll('.tab-btn');
-        btns.forEach(btn => btn.onclick = () => container.scrollTo({ left: container.clientWidth * btn.dataset.idx, behavior: 'smooth' }));
+        btns.forEach(b => b.onclick = () => container.scrollTo({ left: container.clientWidth * b.dataset.idx, behavior: 'smooth' }));
         container.onscroll = () => {
             const idx = Math.round(container.scrollLeft / container.clientWidth);
             btns.forEach((b, i) => b.classList.toggle('active', i === idx));
         };
 
-        // 送出指令
-        document.getElementById('btn-deploy').onclick = () => {
-            const msg = `${document.getElementById('deploy-team').value}.${pCount}人.${document.getElementById('address').value}.${document.getElementById('side').value}.${document.getElementById('task').value}`;
-            send(msg);
+        // --- 送出指令 ---
+        document.getElementById('go-deploy').onclick = () => {
+            const b = document.getElementById('dep-b').value, t = document.getElementById('dep-t').value;
+            setSquadPref(b, t); // 送出時儲存記憶
+            const msg = `${t}.${pCount}人.${document.getElementById('addr-in').value}.${document.getElementById('side-in').value}.${document.getElementById('task-in').value}`;
+            send(msg, "🚀 部署資訊已送出");
         };
-        document.getElementById('btn-leave').onclick = () => send(`${document.getElementById('leave-team').value}.離開`);
-        document.getElementById('btn-start').onclick = () => {
-            const t = document.getElementById('t-type').value, a = document.getElementById('t-addr').value;
-            if(t && a) send(`開始任務.${t}.${a}`);
-        };
-        document.getElementById('btn-end').onclick = () => { if(confirm("結案嗎？")) send("結束任務"); };
 
-        function send(txt) {
-            if(liff.isInClient()) liff.sendMessages([{type:'text', text:txt}]).then(() => liff.closeWindow());
-            else alert("內容：" + txt);
+        document.getElementById('go-leave').onclick = () => {
+            const t = document.getElementById('lv-t').value;
+            send(`${t}.離開`, `🚪 ${t} 已撤離現場`);
+        };
+
+        document.getElementById('go-start').onclick = () => {
+            const t = document.getElementById('t-type').value, a = document.getElementById('t-addr').value;
+            if(t && a) send(`開始任務.${t}.${a}`, "🚩 任務已開啟");
+            else showToast("⚠️ 請填寫完整資訊");
+        };
+
+        document.getElementById('go-end').onclick = () => { if(confirm("確定結案並存檔？")) send("結束任務", "✅ 任務已結案"); };
+
+        function send(txt, successMsg) {
+            if(liff.isInClient()) {
+                liff.sendMessages([{type:'text', text:txt}]).then(() => {
+                    showToast(successMsg);
+                    setTimeout(() => liff.closeWindow(), 1000);
+                });
+            } else {
+                showToast("瀏覽器測試：" + txt);
+            }
         }
     </script>
 </body>
