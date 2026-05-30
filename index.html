@@ -19,18 +19,21 @@
             background-color: var(--bg-gray); 
             margin: 0; padding: 0; 
             color: var(--text-dark);
-            overflow: hidden; /* 防止整頁捲動，改用分頁捲動 */
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden; /* 禁止整頁捲動，改用分頁捲動 */
         }
 
-        /* 頂部固定頁籤 */
+        /* 頂部固定頁籤 - 提升 z-index 確保可點擊 */
         .nav-tabs { 
             display: flex; background: #ffffff; 
-            position: fixed; top: 0; width: 100%; z-index: 100; 
+            position: fixed; top: 0; width: 100%; z-index: 999; 
             border-bottom: 1px solid var(--border-color);
         }
         .tab-btn { 
             flex: 1; padding: 15px 0; text-align: center; font-size: 14px; 
-            color: var(--text-gray); position: relative; transition: color 0.2s;
+            color: var(--text-gray); position: relative; cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
         .tab-btn.active { color: var(--line-green); font-weight: bold; }
         .tab-btn.active::after {
@@ -41,8 +44,8 @@
         /* 左右滑動容器 */
         .swipe-wrapper {
             display: flex;
-            width: 300vw; /* 三個分頁 */
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             overflow-x: auto;
             scroll-snap-type: x mandatory;
             scroll-behavior: smooth;
@@ -51,49 +54,48 @@
         .swipe-wrapper::-webkit-scrollbar { display: none; }
 
         .page {
-            width: 100vw;
-            height: 100vh;
+            flex: 0 0 100%;
+            width: 100%;
+            height: 100%;
             scroll-snap-align: start;
             padding: 70px 16px 20px 16px; /* 留出頂部 nav 空間 */
             box-sizing: border-box;
             overflow-y: auto;
         }
 
-        /* 卡片設計 */
+        /* 卡片與表單項 */
         .card { background: #ffffff; border-radius: 12px; padding: 4px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .section-title { font-size: 13px; color: var(--text-gray); margin: 16px 0 8px 4px; }
         .form-item { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border-color); }
         .form-item:last-child { border-bottom: none; }
         .form-label { width: 100px; font-size: 16px; flex-shrink: 0; }
-        select, input { flex-grow: 1; border: none; font-size: 16px; outline: none; background: transparent; text-align: right; color: var(--line-green); appearance: none; }
+        select, input { flex-grow: 1; border: none; font-size: 16px; outline: none; background: transparent; text-align: right; color: var(--line-green); appearance: none; -webkit-appearance: none; }
         
-        /* 指令與資訊顯示 */
+        /* 指令狀態區 */
         .info-box { background: #fff9f0; border: 1px solid #ffeeba; border-radius: 8px; padding: 12px; margin-bottom: 16px; }
         .info-title { font-size: 14px; color: #856404; font-weight: bold; margin-bottom: 4px; }
         .info-content { font-size: 16px; color: #111; }
 
         /* 按鈕設計 */
-        .btn { width: 100%; padding: 14px; border-radius: 25px; font-size: 16px; font-weight: bold; border: none; margin-top: 10px; transition: 0.2s; }
+        .btn { width: 100%; padding: 14px; border-radius: 25px; font-size: 16px; font-weight: bold; border: none; margin-top: 10px; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
         .btn-primary { background-color: var(--line-green); color: white; }
         .btn-start { background-color: var(--emergency-red); color: white; }
-        .btn-end { background-color: #343a40; color: #FF5B5B; border: 1px solid #FF5B5B; } /* 結束任務底色改深色配紅字 */
+        .btn-end { background-color: #343a40; color: #FF5B5B; border: 1px solid #FF5B5B; }
         .btn-leave { background-color: #f1f1f1; color: var(--emergency-red); }
-        .btn:disabled { background-color: #ccc; color: white; border: none; opacity: 0.6; }
         .btn:active { opacity: 0.7; transform: scale(0.98); }
-
         .desc-text { font-size: 12px; color: var(--text-gray); text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="nav-tabs">
-        <div class="tab-btn active" id="tab0-btn" onclick="scrollToPage(0)">部署回報</div>
-        <div class="tab-btn" id="tab1-btn" onclick="scrollToPage(1)">分隊撤離</div>
-        <div class="tab-btn" id="tab2-btn" onclick="scrollToPage(2)">管理指令</div>
+    <div class="nav-tabs" id="nav-tabs">
+        <div class="tab-btn active" data-idx="0">部署回報</div>
+        <div class="tab-btn" data-idx="1">分隊撤離</div>
+        <div class="tab-btn" data-idx="2">管理指令</div>
     </div>
 
     <div class="swipe-wrapper" id="swipe-container">
-        <!-- 頁面 1: 部署回報 -->
+        <!-- 頁面 0: 部署 -->
         <div class="page">
             <div class="section-title">分隊資訊</div>
             <div class="card">
@@ -114,42 +116,39 @@
                     <option value="滅火">滅火</option><option value="搜救">搜救</option><option value="排煙">排煙</option><option value="防護">防護</option>
                 </select></div>
             </div>
-            <button class="btn btn-primary" onclick="sendDeployment()">送出部署回報</button>
+            <button class="btn btn-primary" id="submit-deploy">送出部署回報</button>
         </div>
 
-        <!-- 頁面 2: 撤離 -->
+        <!-- 頁面 1: 撤離 -->
         <div class="page">
             <div class="section-title">選擇撤離分隊</div>
             <div class="card">
                 <div class="form-item"><span class="form-label">分隊名稱</span><select id="leave_team">
-                    <option value="中和分隊">中和分隊</option><option value="南勢分隊">南勢分隊</option>
+                    <option value="中和分隊">中和分隊</option><option value="南勢分隊">南勢分隊</option><option value="海山分隊">海山分隊</option>
                 </select></div>
             </div>
-            <button class="btn btn-leave" onclick="sendLeave()">確認撤離現場</button>
+            <button class="btn btn-leave" id="submit-leave">確認撤離現場</button>
             <p class="desc-text">送出後，圖資看板將同步移除此分隊</p>
         </div>
 
-        <!-- 頁面 3: 管理指令 (關鍵同步邏輯) -->
+        <!-- 頁面 2: 管理指令 -->
         <div class="page">
-            <!-- 任務進行中顯示的區域 -->
             <div id="active-task-info" style="display: none;">
                 <div class="section-title">目前執行中任務</div>
                 <div class="info-box">
                     <div class="info-title">🔥 類型 / 地址</div>
-                    <div class="info-content" id="current-task-display">正在取得資料...</div>
+                    <div class="info-content" id="current-task-display">讀取中...</div>
                 </div>
-                <button class="btn btn-end" onclick="sendEndTask()">✅ 結束任務並結案存檔</button>
-                <p class="desc-text">結案後方可開啟下一筆新任務</p>
+                <button class="btn btn-end" id="submit-end">✅ 結束任務並結案存檔</button>
             </div>
 
-            <!-- 無任務時顯示的區域 -->
             <div id="new-task-form">
                 <div class="section-title">開啟新任務</div>
                 <div class="card">
-                    <div class="form-item"><span class="form-label">火警類型</span><input type="text" id="task_type" placeholder="例如：工廠火警"></div>
-                    <div class="form-item"><span class="form-label">現場地址</span><input type="text" id="task_addr" placeholder="例如：中正路100號"></div>
+                    <div class="form-item"><span class="form-label">火警類型</span><input type="text" id="task_type" placeholder="例如：火警"></div>
+                    <div class="form-item"><span class="form-label">現場地址</span><input type="text" id="task_addr" placeholder="例如：板橋區文化路"></div>
                 </div>
-                <button class="btn btn-start" id="start-btn" onclick="sendStartTask()">🚩 開始新任務</button>
+                <button class="btn btn-start" id="submit-start">🚩 開始新任務</button>
             </div>
         </div>
     </div>
@@ -159,7 +158,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 🔴 請更換為您的 Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyD9oJirgoJCTU7h-ODfSpfwC80E5fqze2A",
             authDomain: "clawone-6445c.firebaseapp.com",
@@ -177,61 +175,62 @@
             if (!liff.isLoggedIn()) liff.login();
         });
 
-        // 監聽 Firebase 任務狀態
+        const container = document.getElementById('swipe-container');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+
+        // 1. 頁籤點擊事件
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = btn.getAttribute('data-idx');
+                container.scrollTo({ left: container.clientWidth * idx, behavior: 'smooth' });
+            });
+        });
+
+        // 2. 滑動同步頁籤狀態
+        container.addEventListener('scroll', () => {
+            const index = Math.round(container.scrollLeft / container.clientWidth);
+            tabBtns.forEach((b, i) => b.classList.toggle('active', i === index));
+        });
+
+        // 3. 監聽 Firebase 任務狀態
         onSnapshot(doc(db, "system_state", "current_task"), (snapshot) => {
             const activeInfo = document.getElementById('active-task-info');
             const newForm = document.getElementById('new-task-form');
             const display = document.getElementById('current-task-display');
 
             if (snapshot.exists()) {
-                const data = snapshot.data();
-                display.innerText = `${data.type} / ${data.address}`;
+                display.innerText = `${snapshot.data().type} / ${snapshot.data().address}`;
                 activeInfo.style.display = 'block';
-                newForm.style.display = 'none'; // 隱藏輸入框，禁止重複開啟
+                newForm.style.display = 'none';
             } else {
                 activeInfo.style.display = 'none';
                 newForm.style.display = 'block';
             }
         });
 
-        // 滑動導航同步
-        const container = document.getElementById('swipe-container');
-        container.addEventListener('scroll', () => {
-            const index = Math.round(container.scrollLeft / window.innerWidth);
-            document.querySelectorAll('.tab-btn').forEach((b, i) => {
-                b.classList.toggle('active', i === index);
-            });
-        });
-
-        window.scrollToPage = (idx) => {
-            container.scrollTo({ left: window.innerWidth * idx, behavior: 'smooth' });
-        };
-
-        // 功能函數
-        window.sendDeployment = () => {
+        // 4. 指令送出功能
+        document.getElementById('submit-deploy').addEventListener('click', () => {
             const msg = `${document.getElementById('team').value}.${document.getElementById('people').value}人.${document.getElementById('address').value}號.${document.getElementById('side').value}.${document.getElementById('task').value}`;
             sendLineMsg(msg);
-        };
+        });
 
-        window.sendLeave = () => {
+        document.getElementById('submit-leave').addEventListener('click', () => {
             sendLineMsg(`${document.getElementById('leave_team').value}.離開`);
-        };
+        });
 
-        window.sendStartTask = () => {
+        document.getElementById('submit-start').addEventListener('click', () => {
             const type = document.getElementById('task_type').value;
             const addr = document.getElementById('task_addr').value;
-            if(!type || !addr) { alert("請填寫類型與地址"); return; }
+            if(!type || !addr) return alert("請完整填寫");
             sendLineMsg(`開始任務.${type}.${addr}`);
-        };
+        });
 
-        window.sendEndTask = () => {
-            if(confirm("確定要結案嗎？資料將封存並清空畫布。")) {
-                sendLineMsg(`結束任務`);
-            }
-        };
+        document.getElementById('submit-end').addEventListener('click', () => {
+            if(confirm("確定要結案嗎？資料將封存並清空看板。")) sendLineMsg(`結束任務`);
+        });
 
         function sendLineMsg(txt) {
-            if (!liff.isInClient()) { alert("發送內容：" + txt); return; }
+            if (!liff.isInClient()) return alert("請在 LINE 內操作\n內容：" + txt);
             liff.sendMessages([{ type: 'text', text: txt }]).then(() => liff.closeWindow());
         }
     </script>
