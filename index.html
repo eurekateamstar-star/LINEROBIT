@@ -57,25 +57,41 @@
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
         // 初始化 LIFF (已填入你的專屬 ID)
-        liff.init({ liffId: "2010239154-mvwJXGM7" }).catch(err => console.error(err));
+        liff.init({ liffId: "2010239154-mvwJXGM7" }).then(() => {
+            // 確保使用者有登入 LINE
+            if (!liff.isLoggedIn()) {
+                liff.login();
+            }
+        }).catch(err => {
+            alert("初始化失敗，請檢查網路連線。");
+        });
 
         function sendReport() {
+            // 防呆機制：如果不是在 LINE 聊天室裡面點開，就擋下來
+            if (!liff.isInClient()) {
+                alert("❌ 錯誤：請在 LINE 的聊天室裡面點擊選單，才能送出回報！");
+                return;
+            }
+
+            // 抓取表單資料
             const team = document.getElementById('team').value;
             const people = document.getElementById('people').value + "人";
             const address = document.getElementById('address').value + "號";
             const side = document.getElementById('side').value;
             const task = document.getElementById('task').value;
 
-            // 組合出後端能看懂的格式
+            // 組合文字
             const message = `${team}.${people}.${address}.${side}.${task}`;
 
-            // 代替使用者在聊天室發送訊息
+            // 代替使用者發送訊息
             liff.sendMessages([
                 { type: 'text', text: message }
             ]).then(() => {
-                liff.closeWindow(); // 傳送成功後自動關閉表單
+                // 發送成功，關閉視窗
+                liff.closeWindow(); 
             }).catch((err) => {
-                alert("傳送失敗，請確認網路連線。");
+                // 如果失敗，彈出真實的錯誤訊息！
+                alert("發送失敗！錯誤代碼：\n" + JSON.stringify(err));
             });
         }
     </script>
