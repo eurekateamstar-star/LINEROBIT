@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>救災部署回報</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        h2 { text-align: center; color: #d32f2f; margin-bottom: 20px;}
+        label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px;}
+        select, input { width: 100%; padding: 15px; font-size: 18px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+        .btn { width: 100%; padding: 18px; font-size: 20px; font-weight: bold; color: white; background-color: #d32f2f; border: none; border-radius: 8px; margin-top: 30px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn:active { background-color: #b71c1c; transform: scale(0.98); }
+    </style>
+</head>
+<body>
+
+    <h2>🚒 快速部署回報</h2>
+
+    <label>1. 分隊名稱</label>
+    <select id="team">
+        <option value="中和分隊">中和分隊</option>
+        <option value="南勢分隊">南勢分隊</option>
+        <option value="海山分隊">海山分隊</option>
+        <option value="莒光分隊">莒光分隊</option>
+        <option value="新板分隊">新板分隊</option>
+    </select>
+
+    <label>2. 派遣人數 (輸入數字)</label>
+    <input type="number" id="people" placeholder="例如: 12" value="5">
+
+    <label>3. 地址末碼 (輸入數字)</label>
+    <input type="number" id="address" placeholder="例如: 8" value="8">
+
+    <label>4. 部署位置 (面)</label>
+    <select id="side">
+        <option value="1面">1面 (前方)</option>
+        <option value="2面">2面 (右方)</option>
+        <option value="3面">3面 (後方)</option>
+        <option value="4面">4面 (左方)</option>
+        <option value="頂樓">頂樓</option>
+    </select>
+
+    <label>5. 執行任務</label>
+    <select id="task">
+        <option value="滅火">滅火</option>
+        <option value="人命搜救">人命搜救</option>
+        <option value="排煙">排煙</option>
+        <option value="破壞">破壞</option>
+        <option value="防護">防護</option>
+        <option value="水源">水源</option>
+    </select>
+
+    <button class="btn" onclick="sendReport()">一鍵回報出勤</button>
+
+    <!-- 載入 LINE LIFF SDK -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+        // 初始化 LIFF (已填入你的專屬 ID)
+        liff.init({ liffId: "2010239154-mvwJXGM7" }).catch(err => console.error(err));
+
+        function sendReport() {
+            const team = document.getElementById('team').value;
+            const people = document.getElementById('people').value + "人";
+            const address = document.getElementById('address').value + "號";
+            const side = document.getElementById('side').value;
+            const task = document.getElementById('task').value;
+
+            // 組合出後端能看懂的格式
+            const message = `${team}.${people}.${address}.${side}.${task}`;
+
+            // 代替使用者在聊天室發送訊息
+            liff.sendMessages([
+                { type: 'text', text: message }
+            ]).then(() => {
+                liff.closeWindow(); // 傳送成功後自動關閉表單
+            }).catch((err) => {
+                alert("傳送失敗，請確認網路連線。");
+            });
+        }
+    </script>
+</body>
+</html>
