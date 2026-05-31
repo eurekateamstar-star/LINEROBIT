@@ -137,8 +137,17 @@
                 <button class="btn btn-start" id="go-start">🚩 開始任務</button>
             </div>
 
-            <!-- 🟢 新增：管理人員設定區 (直接對接資料庫名冊，無縫授權) -->
+            <!-- 管理人員設定區 -->
             <div class="section-title" style="margin-top: 24px;">管理人員設定</div>
+            
+            <!-- 🟢 新增：已授權管理員顯示面板 -->
+            <div class="card" style="padding: 12px 16px; margin-bottom: 12px; background-color: #f9f9f9; border-left: 5px solid var(--line-green);">
+                <div style="font-size: 12px; color: var(--text-gray); font-weight: bold; margin-bottom: 8px;">👑 目前已授權管理員：</div>
+                <div id="authorized-admins-list" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    <span style="color: var(--text-gray); font-size: 13px;">載入名單中...</span>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="form-item">
                     <span class="form-label">選擇成員</span>
@@ -161,7 +170,6 @@
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // 🟢 修改：引進 Firestore 的集合 (collection) 與查詢元件
         import { getFirestore, doc, onSnapshot, collection, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD9oJirgoJCTU7h-ODfSpfwC80E5fqze2A", authDomain: "clawone-6445c.firebaseapp.com", projectId: "clawone-6445c", storageBucket: "clawone-6445c.firebasestorage.app", messagingSenderId: "945236029933", appId: "1:945236029933:web:f93ffb9e6f8b41aebd37e4" };
@@ -220,20 +228,58 @@
             }
         });
 
-        // 🟢 監聽並自動載入 Firestore 好友名冊至選單中
+        // 🟢 好友名冊快取 map 與已授權 ID 陣列
+        let userMap = {};
+        let adminIds = [];
+
         const userSelect = document.getElementById('admin-user-select');
         const uidInput = document.getElementById('admin-uid-input');
 
+        // 監聽並自動載入 Firestore 好友名冊至選單中
         onSnapshot(query(collection(db, "line_users"), where("status", "==", "active")), (snapshot) => {
             userSelect.innerHTML = '<option value="">-- 請選擇成員 --</option>';
+            userMap = {}; // 清空並重新建立快取
             snapshot.forEach((doc) => {
                 const userData = doc.data();
+                userMap[doc.id] = userData.name; // 紀錄 UID 與 暱稱的對照關係
+
                 const opt = document.createElement('option');
                 opt.value = userData.userId;
                 opt.innerText = userData.name;
                 userSelect.appendChild(opt);
             });
+            renderAdminList(); // 好友快取更新後，重新渲染已授權名單
         });
+
+        // 🟢 監聽 Firestore 中的已授權管理員名單
+        onSnapshot(collection(db, "authorized_admins"), (snapshot) => {
+            adminIds = [];
+            snapshot.forEach((doc) => {
+                adminIds.push(doc.id); // 文件的 ID 即為管理員的 UID
+            });
+            renderAdminList();
+        });
+
+        // 🟢 渲染已授權管理員列表
+        function renderAdminList() {
+            const container = document.getElementById('authorized-admins-list');
+            if (!container) return;
+            
+            if (adminIds.length === 0) {
+                container.innerHTML = '<span style="color: var(--text-gray); font-size: 13px;">⚠️ 目前暫無動態授權管理員</span>';
+                return;
+            }
+
+            container.innerHTML = "";
+            adminIds.forEach((id) => {
+                // 從好友名冊快取反查暱稱，若查無則顯示簡略 UID
+                const name = userMap[id] || `管理人員 (${id.substring(0, 6)}...)`;
+                const span = document.createElement('span');
+                span.style.cssText = "display: inline-block; background: #e2f0d9; color: #385723; padding: 4px 10px; border-radius: 20px; font-size: 13px; font-weight: bold;";
+                span.innerHTML = `👤 ${name}`;
+                container.appendChild(span);
+            });
+        }
 
         // 點選名稱後自動把 UID 代入下方輸入框中
         userSelect.onchange = (e) => {
@@ -283,7 +329,7 @@
             send("結束任務", "✅ 任務已結案");
         };
 
-        // 🟢 新增：前台動態「授權管理員」按鈕監聽
+        // 前台動態「授權管理員」按鈕監聽
         document.getElementById('go-add-admin').onclick = () => {
             const uid = uidInput.value.trim();
             if (!uid || !uid.startsWith("U") || uid.length !== 33) {
@@ -293,7 +339,7 @@
             send(`授權.${uid}`, "🚀 已發送授權管理員指令");
         };
 
-        // 🟢 新增：前台動態「移除權限」按鈕監聽
+        // 前台動態「移除權限」按鈕監聽
         document.getElementById('go-remove-admin').onclick = () => {
             const uid = uidInput.value.trim();
             if (!uid || !uid.startsWith("U") || uid.length !== 33) {
