@@ -123,6 +123,7 @@
 
         <!-- 指令頁 -->
         <div class="page">
+            <!-- 任務狀態區 -->
             <div id="task-active" style="display:none;">
                 <div class="info-box">目前執行任務：<br><b id="task-text">載入中...</b></div>
                 <button class="btn btn-end" id="go-end">✅ 結束任務結案存檔</button>
@@ -135,13 +136,33 @@
                 </div>
                 <button class="btn btn-start" id="go-start">🚩 開始任務</button>
             </div>
+
+            <!-- 🟢 新增：管理人員設定區 (直接對接資料庫名冊，無縫授權) -->
+            <div class="section-title" style="margin-top: 24px;">管理人員設定</div>
+            <div class="card">
+                <div class="form-item">
+                    <span class="form-label">選擇成員</span>
+                    <select id="admin-user-select" style="text-align: right; color: var(--line-green);">
+                        <option value="">載入名冊中...</option>
+                    </select>
+                </div>
+                <div class="form-item">
+                    <span class="form-label">使用者 ID</span>
+                    <input type="text" id="admin-uid-input" placeholder="選擇成員後將自動填入，或手動輸入 UID" style="text-align: left; font-size: 13px; color: var(--text-dark);">
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="btn btn-primary" id="go-add-admin" style="margin-top: 0; background-color: var(--line-green);">➕ 授權管理員</button>
+                <button class="btn btn-end" id="go-remove-admin" style="margin-top: 0; border: 2px solid var(--emergency-red); color: var(--emergency-red); background-color: transparent;">❌ 移除權限</button>
+            </div>
         </div>
     </div>
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // 🟢 修改：引進 Firestore 的集合 (collection) 與查詢元件
+        import { getFirestore, doc, onSnapshot, collection, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD9oJirgoJCTU7h-ODfSpfwC80E5fqze2A", authDomain: "clawone-6445c.firebaseapp.com", projectId: "clawone-6445c", storageBucket: "clawone-6445c.firebasestorage.app", messagingSenderId: "945236029933", appId: "1:945236029933:web:f93ffb9e6f8b41aebd37e4" };
         const app = initializeApp(firebaseConfig);
@@ -187,6 +208,7 @@
         document.getElementById('plus').onclick = () => { pCount++; document.getElementById('p-val').innerText = pCount; };
         document.getElementById('minus').onclick = () => { if(pCount > 1) pCount--; document.getElementById('p-val').innerText = pCount; };
 
+        // 任務狀態即時同步
         onSnapshot(doc(db, "system_state", "current_task"), (snap) => {
             const active = document.getElementById('task-active'), nw = document.getElementById('task-new');
             if (snap.exists()) {
@@ -198,6 +220,26 @@
             }
         });
 
+        // 🟢 監聽並自動載入 Firestore 好友名冊至選單中
+        const userSelect = document.getElementById('admin-user-select');
+        const uidInput = document.getElementById('admin-uid-input');
+
+        onSnapshot(query(collection(db, "line_users"), where("status", "==", "active")), (snapshot) => {
+            userSelect.innerHTML = '<option value="">-- 請選擇成員 --</option>';
+            snapshot.forEach((doc) => {
+                const userData = doc.data();
+                const opt = document.createElement('option');
+                opt.value = userData.userId;
+                opt.innerText = userData.name;
+                userSelect.appendChild(opt);
+            });
+        });
+
+        // 點選名稱後自動把 UID 代入下方輸入框中
+        userSelect.onchange = (e) => {
+            uidInput.value = e.target.value;
+        };
+
         liff.init({ liffId: "2010239154-mvwJXGM7" }).then(() => { if(!liff.isLoggedIn()) liff.login(); initUI(); });
 
         const container = document.getElementById('swipe-container');
@@ -208,7 +250,7 @@
             btns.forEach((b, i) => b.classList.toggle('active', i === idx));
         };
 
-        // --- 送出指令 (已移除確認對話框，改為直接發送) ---
+        // --- 送出指令 ---
         document.getElementById('go-deploy').onclick = () => {
             const b = document.getElementById('dep-b').value;
             const t = document.getElementById('dep-t').value;
@@ -239,6 +281,26 @@
 
         document.getElementById('go-end').onclick = () => {
             send("結束任務", "✅ 任務已結案");
+        };
+
+        // 🟢 新增：前台動態「授權管理員」按鈕監聽
+        document.getElementById('go-add-admin').onclick = () => {
+            const uid = uidInput.value.trim();
+            if (!uid || !uid.startsWith("U") || uid.length !== 33) {
+                showToast("⚠️ 請選擇成員或輸入正確的 UID");
+                return;
+            }
+            send(`授權.${uid}`, "🚀 已發送授權管理員指令");
+        };
+
+        // 🟢 新增：前台動態「移除權限」按鈕監聽
+        document.getElementById('go-remove-admin').onclick = () => {
+            const uid = uidInput.value.trim();
+            if (!uid || !uid.startsWith("U") || uid.length !== 33) {
+                showToast("⚠️ 請選擇成員或輸入正確的 UID");
+                return;
+            }
+            send(`取消授權.${uid}`, "🚪 已發送移除權限指令");
         };
 
         function send(txt, successMsg) {
