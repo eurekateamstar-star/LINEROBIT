@@ -50,12 +50,12 @@
 
         .info-box { background: #fff4e5; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 5px solid var(--warning-orange); }
 
-        /* 🟢 App 自定義對話框 (跳上面一點) */
+        /* App 自定義對話框 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); z-index: 10000;
             display: none; align-items: flex-start; justify-content: center;
-            padding-top: 15vh; /* 往上移 15% */
+            padding-top: 15vh;
         }
         .modal-box {
             background: white; width: 85%; max-width: 320px; border-radius: 16px;
@@ -115,13 +115,22 @@
             </div>
             <div class="section-title">位置任務</div>
             <div class="card">
-                <div class="form-item"><span class="form-label">地址末碼</span><input type="text" id="addr-in"></div>
+                <div class="form-item"><span class="form-label">地址末碼</span><input type="text" id="addr-in" placeholder="選填"></div>
                 <div class="form-item"><span class="form-label">方位</span><select id="side-in">
-                    <option value="1面">1面 (前)</option><option value="2面">2面 (左)</option><option value="3面">3面 (後)</option>
-                    <option value="4面">4面 (右)</option><option value="內部">內部</option>
+                    <option value="1面">1面 (前)</option><option value="2面">2面 (左)</option>
+                    <option value="3面">3面 (後)</option><option value="4面">4面 (右)</option>
+                    <option value="內部">內部</option>
+                    <!-- 🟢 待命相關方位 -->
+                    <option value="外部">外部</option>
+                    <option value="集結區">集結區</option>
                 </select></div>
                 <div class="form-item"><span class="form-label">執行任務</span><select id="task-in">
-                    <option value="滅火">滅火</option><option value="搜救">搜救</option><option value="排煙">排煙</option><option value="防護">防護</option>
+                    <option value="滅火">滅火</option><option value="搜救">搜救</option>
+                    <option value="排煙">排煙</option><option value="防護">防護</option>
+                    <!-- 🟢 待命相關任務 -->
+                    <option value="周界防護">周界防護</option>
+                    <option value="現場待命">現場待命</option>
+                    <option value="RIT待命">RIT待命</option>
                 </select></div>
             </div>
             <button class="btn btn-primary" id="go-deploy">確認部署回報</button>
@@ -163,7 +172,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- 核心：App 質感對話框函數 ---
         let currentCallback = null;
         function ask(title, msg, onConfirm) {
             document.getElementById('m-title').innerText = title;
@@ -183,7 +191,6 @@
             setTimeout(() => t.classList.remove('show'), 2500);
         }
 
-        // --- 單位清單與記憶 ---
         const fireData = {
             "第一大隊": ["板橋", "新板", "海山", "莒光", "溪崑", "民生"],
             "第二大隊": ["新莊", "中港", "福營", "五工", "泰山", "五股", "林口", "文化"],
@@ -214,7 +221,6 @@
             setSquadPref(localStorage.getItem('last_b') || "第七大隊", localStorage.getItem('last_t') || "中和分隊");
         }
 
-        // --- 邏輯 ---
         let pCount = 5;
         document.getElementById('plus').onclick = () => { pCount++; document.getElementById('p-val').innerText = pCount; };
         document.getElementById('minus').onclick = () => { if(pCount > 1) pCount--; document.getElementById('p-val').innerText = pCount; };
@@ -245,8 +251,10 @@
             const t = document.getElementById('dep-t').value;
             ask("確認部署回報", `確定要送出 ${t} 的部署資訊嗎？`, () => {
                 setSquadPref(document.getElementById('dep-b').value, t);
-                const msg = `${t}.${pCount}人.${document.getElementById('addr-in').value}.${document.getElementById('side-in').value}.${document.getElementById('task-in').value}`;
-                send(msg, "🚀 部署資訊已送出");
+                // 🟢 【防呆處理】如果沒有寫地址末碼，會自動補上「無」
+                const addrVal = document.getElementById('addr-in').value || "無";
+                const msg = `${t}.${pCount}人.${addrVal}.${document.getElementById('side-in').value}.${document.getElementById('task-in').value}`;
+                send(msg, "🚀 資訊已送出");
             });
         };
 
