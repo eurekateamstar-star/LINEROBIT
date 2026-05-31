@@ -50,26 +50,6 @@
 
         .info-box { background: #fff4e5; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 5px solid var(--warning-orange); }
 
-        /* App 自定義對話框 */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 10000;
-            display: none; align-items: flex-start; justify-content: center;
-            padding-top: 15vh;
-        }
-        .modal-box {
-            background: white; width: 85%; max-width: 320px; border-radius: 16px;
-            padding: 25px 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            animation: modalIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-        }
-        @keyframes modalIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .modal-box h3 { margin: 0 0 12px 0; font-size: 18px; color: #111; }
-        .modal-box p { margin: 0 0 25px 0; font-size: 15px; color: #666; line-height: 1.5; }
-        .modal-footer { display: flex; gap: 10px; }
-        .m-btn { flex: 1; padding: 12px; border-radius: 10px; font-weight: bold; border: none; cursor: pointer; font-size: 16px; }
-        .m-btn-cancel { background: #eee; color: #666; }
-        .m-btn-confirm { background: var(--line-green); color: white; }
-
         /* Toast 提示 */
         #toast {
             position: fixed; bottom: -60px; left: 50%; transform: translateX(-50%);
@@ -81,18 +61,6 @@
     </style>
 </head>
 <body>
-
-    <!-- 自定義對話框 HTML -->
-    <div id="m-overlay" class="modal-overlay">
-        <div class="modal-box">
-            <h3 id="m-title">標題</h3>
-            <p id="m-msg">內容訊息</p>
-            <div class="modal-footer">
-                <button class="m-btn m-btn-cancel" id="m-cancel">取消</button>
-                <button class="m-btn m-btn-confirm" id="m-ok">確定</button>
-            </div>
-        </div>
-    </div>
 
     <div id="toast">提示訊息</div>
 
@@ -109,7 +77,16 @@
             <div class="card">
                 <div class="form-item"><span class="form-label">大隊</span><select id="dep-b"></select></div>
                 <div class="form-item"><span class="form-label">分隊</span><select id="dep-t"></select></div>
-                <div class="form-item"><span class="form-label">派遣人數</span>
+                <div class="form-item">
+                    <span class="form-label">帶隊官</span>
+                    <select id="leader-in">
+                        <option value="六號">六號</option>
+                        <option value="七號">七號</option>
+                        <option value="八號">八號</option>
+                        <option value="九號">九號</option>
+                    </select>
+                </div>
+                <div class="form-item"><span class="form-label">進入火場</span>
                     <div class="stepper"><button class="step-btn" id="minus">-</button><div class="step-val" id="p-val">5</div><button class="step-btn" id="plus">+</button></div>
                 </div>
             </div>
@@ -117,17 +94,15 @@
             <div class="card">
                 <div class="form-item"><span class="form-label">地址末碼</span><input type="text" id="addr-in" placeholder="選填"></div>
                 <div class="form-item"><span class="form-label">方位</span><select id="side-in">
-                    <option value="1面">1面 (前)</option><option value="2面">2面 (左)</option>
-                    <option value="3面">3面 (後)</option><option value="4面">4面 (右)</option>
-                    <option value="內部">內部</option>
-                    <!-- 🟢 待命相關方位 -->
-                    <option value="外部">外部</option>
-                    <option value="集結區">集結區</option>
+                    <option value="一面">一面</option>
+                    <option value="二面">二面</option>
+                    <option value="三面">三面</option>
+                    <option value="四面">四面</option>
+                    <option value="待命">待命</option>
                 </select></div>
                 <div class="form-item"><span class="form-label">執行任務</span><select id="task-in">
                     <option value="滅火">滅火</option><option value="搜救">搜救</option>
                     <option value="排煙">排煙</option><option value="防護">防護</option>
-                    <!-- 🟢 待命相關任務 -->
                     <option value="周界防護">周界防護</option>
                     <option value="現場待命">現場待命</option>
                     <option value="RIT待命">RIT待命</option>
@@ -171,19 +146,6 @@
         const firebaseConfig = { apiKey: "AIzaSyD9oJirgoJCTU7h-ODfSpfwC80E5fqze2A", authDomain: "clawone-6445c.firebaseapp.com", projectId: "clawone-6445c", storageBucket: "clawone-6445c.firebasestorage.app", messagingSenderId: "945236029933", appId: "1:945236029933:web:f93ffb9e6f8b41aebd37e4" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
-        let currentCallback = null;
-        function ask(title, msg, onConfirm) {
-            document.getElementById('m-title').innerText = title;
-            document.getElementById('m-msg').innerText = msg;
-            document.getElementById('m-overlay').style.display = 'flex';
-            currentCallback = onConfirm;
-        }
-        document.getElementById('m-cancel').onclick = () => document.getElementById('m-overlay').style.display = 'none';
-        document.getElementById('m-ok').onclick = () => {
-            document.getElementById('m-overlay').style.display = 'none';
-            if (currentCallback) currentCallback();
-        };
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -246,33 +208,37 @@
             btns.forEach((b, i) => b.classList.toggle('active', i === idx));
         };
 
-        // --- 送出指令 ---
+        // --- 送出指令 (已移除確認對話框，改為直接發送) ---
         document.getElementById('go-deploy').onclick = () => {
+            const b = document.getElementById('dep-b').value;
             const t = document.getElementById('dep-t').value;
-            ask("確認部署回報", `確定要送出 ${t} 的部署資訊嗎？`, () => {
-                setSquadPref(document.getElementById('dep-b').value, t);
-                // 🟢 【防呆處理】如果沒有寫地址末碼，會自動補上「無」
-                const addrVal = document.getElementById('addr-in').value || "無";
-                const msg = `${t}.${pCount}人.${addrVal}.${document.getElementById('side-in').value}.${document.getElementById('task-in').value}`;
-                send(msg, "🚀 資訊已送出");
-            });
+            setSquadPref(b, t);
+            
+            const leader = document.getElementById('leader-in').value;
+            const addrVal = document.getElementById('addr-in').value || "無";
+            const side = document.getElementById('side-in').value;
+            const task = document.getElementById('task-in').value;
+            
+            const msg = `${t}.${leader}.${pCount}人.${addrVal}.${side}.${task}`;
+            send(msg, "🚀 資訊已送出");
         };
 
         document.getElementById('go-leave').onclick = () => {
             const t = document.getElementById('lv-t').value;
-            ask("確認撤離現場", `確定要讓 ${t} 撤離並移除圖資嗎？`, () => {
-                send(`${t}.離開`, `🚪 ${t} 已撤離現場`);
-            });
+            send(`${t}.離開`, `🚪 ${t} 已撤離現場`);
         };
 
         document.getElementById('go-start').onclick = () => {
             const t = document.getElementById('t-type').value, a = document.getElementById('t-addr').value;
-            if(t && a) ask("開啟新任務", `確定要開啟位於 ${a} 的任務嗎？`, () => send(`開始任務.${t}.${a}`, "🚩 任務已開啟"));
-            else showToast("⚠️ 請填寫完整資訊");
+            if(t && a) {
+                send(`開始任務.${t}.${a}`, "🚩 任務已開啟");
+            } else {
+                showToast("⚠️ 請填寫完整資訊");
+            }
         };
 
         document.getElementById('go-end').onclick = () => {
-            ask("結束任務結案", "確定要結束目前任務並存檔嗎？此操作將清空看板。", () => send("結束任務", "✅ 任務已結案"));
+            send("結束任務", "✅ 任務已結案");
         };
 
         function send(txt, successMsg) {
