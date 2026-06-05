@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>新北救災指揮系統</title>
+    <title>工廠火災安全管理小幫手</title>
     <style>
         :root {
             --line-green: #06C755; --bg-gray: #F4F4F4; --border-color: #EBEBEB;
@@ -48,7 +48,7 @@
         .form-item-col:last-child { border-bottom: none; }
         .form-item-col .form-label { margin-bottom: 12px; width: 100%; }
 
-        /* 🟢 統一修復 Input & Select 的寬度溢出問題 */
+        /* 統一修復 Input & Select 的寬度溢出問題 */
         select, input[type="text"] { 
             flex: 1; min-width: 0; width: 100%;
             border: none; font-size: 18px; font-weight: bold; 
@@ -94,14 +94,6 @@
         .btn-end { background-color: #222; color: var(--emergency-red); border: 2px solid var(--emergency-red); }
         .btn-leave { background-color: #222; color: var(--warning-orange); border: 2px solid var(--warning-orange); }
 
-        /* 動態狀態提示框 */
-        .live-summary {
-            background: #e2f0d9; border-left: 6px solid var(--line-green);
-            color: #2e501b; padding: 15px; border-radius: 10px;
-            margin-bottom: 15px; font-size: 17px; font-weight: bold;
-            line-height: 1.5; text-align: center; width: 100%; box-sizing: border-box;
-        }
-
         .info-box { background: #fff4e5; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 5px solid var(--warning-orange); width: 100%; box-sizing: border-box;}
 
         /* Toast 提示 */
@@ -127,11 +119,6 @@
     <div class="swipe-wrapper" id="swipe-container">
         <!-- 部署頁 -->
         <div class="page">
-            
-            <!-- 動態顯示區域 -->
-            <div id="live-summary" class="live-summary">
-                載入中...
-            </div>
 
             <div class="section-title">單位選擇</div>
             <div class="card">
@@ -319,13 +306,6 @@
                 tAddrSel.options.add(new Option(b, b));
             }
             
-            // 綁定更新畫面文字的事件
-            ['dep-t', 'leader-in', 'side-in', 'task-in'].forEach(id => {
-                document.getElementById(id).addEventListener('change', updateLiveSummary);
-            });
-            
-            document.getElementById('p-custom').addEventListener('input', updateLiveSummary);
-
             setupRadioGroup('p-group', (val) => {
                 const customInput = document.getElementById('p-custom');
                 if (val === 'custom') {
@@ -334,14 +314,9 @@
                 } else {
                     customInput.style.display = 'none';
                 }
-                updateLiveSummary();
             });
 
-            setupRadioGroup('w-group', () => {
-                updateLiveSummary();
-            });
-            
-            updateLiveSummary();
+            setupRadioGroup('w-group');
         }
 
         function setSquadPref(brigade, team) {
@@ -352,7 +327,6 @@
                 sel.innerHTML = ""; fireData[brigade].forEach(t => sel.options.add(new Option(t + "分隊", t + "分隊")));
             });
             ['dep-t', 'lv-t'].forEach(id => document.getElementById(id).value = team);
-            updateLiveSummary();
         }
 
         function getPCount() {
@@ -368,21 +342,6 @@
         function getWCount() {
             const activeBtn = document.querySelector('#w-group .radio-btn.active');
             return activeBtn ? activeBtn.dataset.val : "0";
-        }
-
-        function updateLiveSummary() {
-            try {
-                const teamFull = document.getElementById('dep-t').value || "";
-                const team = teamFull.replace("分隊", ""); 
-                const leader = document.getElementById('leader-in').value || "";
-                const side = document.getElementById('side-in').value || "";
-                
-                const pCount = getPCount();
-                const wCount = getWCount();
-                
-                const summaryBox = document.getElementById('live-summary');
-                summaryBox.innerText = `${team}${leader} 進入火場 ${pCount}人 方位${side} ${wCount}條水線`;
-            } catch(e) {}
         }
 
         function switchTab(idx) {
