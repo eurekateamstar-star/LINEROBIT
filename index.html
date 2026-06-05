@@ -66,7 +66,7 @@
 
     <div class="nav-tabs">
         <div class="tab-btn active" data-idx="0">部署回報</div>
-        <div class="tab-btn" data-idx="1">分隊撤離</div>
+        <div class="tab-btn" data-idx="1">分隊返隊</div>
         <div class="tab-btn" data-idx="2">管理指令</div>
     </div>
 
@@ -92,7 +92,7 @@
             </div>
             <div class="section-title">位置任務</div>
             <div class="card">
-                <div class="form-item"><span class="form-label">地址末碼</span><input type="text" id="addr-in" placeholder="選填"></div>
+                <!-- 移除了地址末碼 -->
                 <div class="form-item"><span class="form-label">方位</span><select id="side-in">
                     <option value="一面">一面</option>
                     <option value="二面">二面</option>
@@ -111,14 +111,14 @@
             <button class="btn btn-primary" id="go-deploy">確認部署回報</button>
         </div>
 
-        <!-- 撤離頁 -->
+        <!-- 撤離頁(改為返隊) -->
         <div class="page">
-            <div class="section-title">選擇撤離單位</div>
+            <div class="section-title">選擇返隊單位</div>
             <div class="card">
                 <div class="form-item"><span class="form-label">大隊</span><select id="lv-b"></select></div>
                 <div class="form-item"><span class="form-label">分隊</span><select id="lv-t"></select></div>
             </div>
-            <button class="btn btn-leave" id="go-leave">確認分隊撤離現場</button>
+            <button class="btn btn-leave" id="go-leave">確認分隊返隊</button>
         </div>
 
         <!-- 指令頁 -->
@@ -221,12 +221,22 @@
         document.getElementById('plus').onclick = () => { pCount++; document.getElementById('p-val').innerText = pCount; };
         document.getElementById('minus').onclick = () => { if(pCount > 1) pCount--; document.getElementById('p-val').innerText = pCount; };
 
-        // 🟢 切換分頁功能 (無滑動動畫，瞬間切換)
+        // 🟢 切換分頁功能 (針對手機 LIFF 優化)
         function switchTab(idx) {
             const container = document.getElementById('swipe-container');
             const btns = document.querySelectorAll('.tab-btn');
-            container.scrollTo({ left: container.clientWidth * idx, behavior: 'auto' });
+            
+            // 加入保險機制：如果 clientWidth 還沒算出來(0)，就用螢幕總寬度
+            const jumpWidth = container.clientWidth || window.innerWidth;
+            
+            // 暫時關閉平滑滾動，強制瞬間跳轉
+            container.style.scrollBehavior = 'auto'; 
+            container.scrollTo({ left: jumpWidth * idx, behavior: 'auto' });
+            
             btns.forEach((b, i) => b.classList.toggle('active', i === idx));
+            
+            // 跳轉完把平滑滾動加回來，讓後續手動滑動保持順暢
+            setTimeout(() => { container.style.scrollBehavior = 'smooth'; }, 50);
         }
 
         let isFirstLoad = true; // 紀錄是否為剛開啟網頁
@@ -236,12 +246,13 @@
             const active = document.getElementById('task-active'), nw = document.getElementById('task-new');
             if (snap.exists()) {
                 document.getElementById('task-text').innerText = `${snap.data().type} / ${snap.data().address}`;
-                document.getElementById('addr-in').value = snap.data().address;
+                // 已移除 addr-in 的設值邏輯，避免報錯
                 active.style.display = 'block'; nw.style.display = 'none';
                 
                 // 有火警任務：預設切換到「部署回報」(第 0 頁)
                 if (isFirstLoad) {
-                    setTimeout(() => switchTab(0), 150); 
+                    // 手機版 LIFF 渲染需要時間，稍微延遲 400 毫秒再跳轉最穩定
+                    setTimeout(() => switchTab(0), 400); 
                     isFirstLoad = false;
                 }
             } else {
@@ -249,7 +260,7 @@
                 
                 // 沒有火警任務：預設切換到「管理指令」(第 2 頁)
                 if (isFirstLoad) {
-                    setTimeout(() => switchTab(2), 150); 
+                    setTimeout(() => switchTab(2), 400); 
                     isFirstLoad = false;
                 }
             }
@@ -330,17 +341,17 @@
             setSquadPref(b, t);
             
             const leader = document.getElementById('leader-in').value;
-            const addrVal = document.getElementById('addr-in').value || "無";
             const side = document.getElementById('side-in').value;
             const task = document.getElementById('task-in').value;
             
-            const msg = `${t}.${leader}.${pCount}人.${addrVal}.${side}.${task}`;
+            // 移除了 addrVal，格式變為: [分隊].[帶隊官].[人數]人.[方位].[任務]
+            const msg = `${t}.${leader}.${pCount}人.${side}.${task}`;
             send(msg, "🚀 資訊已送出");
         };
 
         document.getElementById('go-leave').onclick = () => {
             const t = document.getElementById('lv-t').value;
-            send(`${t}.離開`, `🚪 ${t} 已撤離現場`);
+            send(`${t}.返隊`, `🚪 ${t} 已返隊`);
         };
 
         document.getElementById('go-start').onclick = () => {
