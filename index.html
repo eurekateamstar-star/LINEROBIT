@@ -31,11 +31,19 @@
         .card { background: #ffffff; border-radius: 12px; padding: 8px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .section-title { font-size: 15px; color: var(--text-gray); margin: 16px 0 8px 4px; font-weight: bold; }
         
-        /* 表單列 */
+        /* 表單列 - 單行 */
         .form-item { display: flex; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border-color); }
         .form-item:last-child { border-bottom: none; }
         .form-label { width: 90px; font-size: 18px; font-weight: bold; flex-shrink: 0; color: #333; }
         
+        /* 🟢 表單列 - 雙欄並排 (新加入) */
+        .form-item-split { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border-color); }
+        .form-item-split:last-child { border-bottom: none; }
+        .form-half { display: flex; align-items: center; flex: 1; overflow: hidden; }
+        .form-half .form-label { width: auto; margin-right: 8px; font-size: 18px; font-weight: bold; color: #333; flex-shrink: 0; }
+        .form-half select { flex-grow: 1; min-width: 0; text-overflow: ellipsis; text-align: right; }
+        .divider-v { width: 1px; height: 24px; background-color: var(--border-color); margin: 0 16px; flex-shrink: 0; } /* 中間垂直分隔線 */
+
         /* 垂直排列的表單列 (用於按鈕群組) */
         .form-item-col { display: flex; flex-direction: column; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid var(--border-color); }
         .form-item-col:last-child { border-bottom: none; }
@@ -47,7 +55,7 @@
             color: var(--line-green); appearance: none; -webkit-appearance: none; 
         }
 
-        /* 🟢 單選按鈕群組設計 */
+        /* 單選按鈕群組設計 */
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
         .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; }
         
@@ -55,7 +63,7 @@
             padding: 12px 0; border: 1px solid #ddd; border-radius: 8px;
             background: #f9f9f9; color: #555; font-size: 16px; font-weight: bold;
             text-align: center; cursor: pointer; transition: 0.15s;
-            -webkit-tap-highlight-color: transparent; /* 移除手機點擊閃爍 */
+            -webkit-tap-highlight-color: transparent; 
         }
         .radio-btn.active {
             background: var(--line-green); color: white;
@@ -126,18 +134,26 @@
             <div class="section-title">單位選擇</div>
             <div class="card">
                 <div class="form-item"><span class="form-label">大隊</span><select id="dep-b"></select></div>
-                <div class="form-item"><span class="form-label">分隊</span><select id="dep-t"></select></div>
-                <div class="form-item">
-                    <span class="form-label">帶隊官</span>
-                    <select id="leader-in">
-                        <option value="六號">六號</option>
-                        <option value="七號">七號</option>
-                        <option value="八號">八號</option>
-                        <option value="九號">九號</option>
-                    </select>
+                
+                <!-- 🟢 分隊與帶隊官 (雙欄並排) -->
+                <div class="form-item-split">
+                    <div class="form-half">
+                        <span class="form-label">分隊</span>
+                        <select id="dep-t"></select>
+                    </div>
+                    <div class="divider-v"></div>
+                    <div class="form-half">
+                        <span class="form-label">帶隊官</span>
+                        <select id="leader-in">
+                            <option value="六號">六號</option>
+                            <option value="七號">七號</option>
+                            <option value="八號">八號</option>
+                            <option value="九號">九號</option>
+                        </select>
+                    </div>
                 </div>
                 
-                <!-- 🟢 進入火場人數 (按鈕群組) -->
+                <!-- 進入火場人數 (按鈕群組) -->
                 <div class="form-item-col">
                     <span class="form-label">進入火場人數</span>
                     <div class="grid-3" id="p-group">
@@ -154,23 +170,34 @@
             
             <div class="section-title">位置任務</div>
             <div class="card">
-                <div class="form-item"><span class="form-label">方位</span><select id="side-in">
-                    <option value="第一面">第一面</option>
-                    <option value="第二面">第二面</option>
-                    <option value="第三面">第三面</option>
-                    <option value="第四面">第四面</option>
-                    <option value="待命">待命</option>
-                </select></div>
-                <div class="form-item"><span class="form-label">執行任務</span><select id="task-in">
-                    <option value="滅火">滅火</option>
-                    <option value="搜救">搜救</option>
-                    <option value="防護">防護</option>
-                    <option value="排煙">排煙</option>
-                    <option value="現場待命">現場待命</option>
-                    <option value="休息">休息</option>
-                </select></div>
                 
-                <!-- 🟢 水線 (按鈕群組) -->
+                <!-- 🟢 方位與執行任務 (雙欄並排) -->
+                <div class="form-item-split">
+                    <div class="form-half">
+                        <span class="form-label">方位</span>
+                        <select id="side-in">
+                            <option value="第一面">第一面</option>
+                            <option value="第二面">第二面</option>
+                            <option value="第三面">第三面</option>
+                            <option value="第四面">第四面</option>
+                            <option value="待命">待命</option>
+                        </select>
+                    </div>
+                    <div class="divider-v"></div>
+                    <div class="form-half">
+                        <span class="form-label">任務</span>
+                        <select id="task-in">
+                            <option value="滅火">滅火</option>
+                            <option value="搜救">搜救</option>
+                            <option value="防護">防護</option>
+                            <option value="排煙">排煙</option>
+                            <option value="現場待命">現場待命</option>
+                            <option value="休息">休息</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 水線 (按鈕群組) -->
                 <div class="form-item-col">
                     <span class="form-label">水線</span>
                     <div class="grid-5" id="w-group">
@@ -270,11 +297,8 @@
             const btns = group.querySelectorAll('.radio-btn');
             btns.forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    // 移除所有 active 狀態
                     btns.forEach(b => b.classList.remove('active'));
-                    // 為當前點擊加入 active
                     e.target.classList.add('active');
-                    // 呼叫回傳函數
                     if(callback) callback(e.target.dataset.val);
                 });
             });
@@ -298,10 +322,8 @@
                 document.getElementById(id).addEventListener('change', updateLiveSummary);
             });
             
-            // 人數自訂輸入框監聽
             document.getElementById('p-custom').addEventListener('input', updateLiveSummary);
 
-            // 初始化單選按鈕
             setupRadioGroup('p-group', (val) => {
                 const customInput = document.getElementById('p-custom');
                 if (val === 'custom') {
@@ -317,7 +339,7 @@
                 updateLiveSummary();
             });
             
-            updateLiveSummary(); // 初始載入顯示
+            updateLiveSummary();
         }
 
         function setSquadPref(brigade, team) {
@@ -331,7 +353,6 @@
             updateLiveSummary();
         }
 
-        // 🟢 取得當前選擇的人數與水線
         function getPCount() {
             const activeBtn = document.querySelector('#p-group .radio-btn.active');
             if (!activeBtn) return "5";
@@ -347,7 +368,6 @@
             return activeBtn ? activeBtn.dataset.val : "0";
         }
 
-        // 🟢 動態更新上方文字邏輯
         function updateLiveSummary() {
             try {
                 const teamFull = document.getElementById('dep-t').value || "";
@@ -363,7 +383,6 @@
             } catch(e) {}
         }
 
-        // 切換分頁功能
         function switchTab(idx) {
             const container = document.getElementById('swipe-container');
             const btns = document.querySelectorAll('.tab-btn');
@@ -376,7 +395,6 @@
 
         let isFirstLoad = true;
 
-        // 任務狀態即時同步
         onSnapshot(doc(db, "system_state", "current_task"), (snap) => {
             const active = document.getElementById('task-active'), nw = document.getElementById('task-new');
             if (snap.exists()) {
@@ -389,7 +407,6 @@
             }
         });
 
-        // 授權名單邏輯
         let userMap = {};
         let adminIds = [];
         const userSelect = document.getElementById('admin-user-select');
