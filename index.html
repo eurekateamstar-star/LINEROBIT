@@ -92,7 +92,8 @@
             </div>
             <div class="section-title">位置任務</div>
             <div class="card">
-                <!-- 移除了地址末碼 -->
+                <!-- 🟢 恢復地址欄位，讓機器人可以正常抓取資料 -->
+                <div class="form-item"><span class="form-label">地址末碼</span><input type="text" id="addr-in" placeholder="選填"></div>
                 <div class="form-item"><span class="form-label">方位</span><select id="side-in">
                     <option value="一面">一面</option>
                     <option value="二面">二面</option>
@@ -246,6 +247,10 @@
             const active = document.getElementById('task-active'), nw = document.getElementById('task-new');
             if (snap.exists()) {
                 document.getElementById('task-text').innerText = `${snap.data().type} / ${snap.data().address}`;
+                
+                // 🟢 這裡去掉了自動填寫，讓它保持空白！
+                // document.getElementById('addr-in').value = snap.data().address;
+                
                 active.style.display = 'block'; nw.style.display = 'none';
                 
                 // 有火警任務：預設切換到「部署回報」(第 0 頁)
@@ -339,15 +344,17 @@
             setSquadPref(b, t);
             
             const leader = document.getElementById('leader-in').value;
+            // 🟢 如果使用者沒填，會自動代入 "無"，維持後端格式順序不亂掉
+            const addrVal = document.getElementById('addr-in').value || "無"; 
             const side = document.getElementById('side-in').value;
             const task = document.getElementById('task-in').value;
             
-            // 移除了 addrVal，格式變為: [分隊].[帶隊官].[人數]人.[方位].[任務]
-            const msg = `${t}.${leader}.${pCount}人.${side}.${task}`;
+            // 🟢 恢復 6 個元素的格式，讓後端解析不會錯亂
+            const msg = `${t}.${leader}.${pCount}人.${addrVal}.${side}.${task}`;
             send(msg, "🚀 資訊已送出");
         };
 
-        // 🟢 這裡修改了：傳送 "離開" 給系統，但畫面顯示 "返隊"
+        // 🟢 送出 "離開" 給系統，但畫面顯示 "返隊"
         document.getElementById('go-leave').onclick = () => {
             const t = document.getElementById('lv-t').value;
             send(`${t}.離開`, `🚪 ${t} 已返隊`);
