@@ -192,7 +192,6 @@
             "特搜大隊": ["慈福", "德音", "秀峰"]
         };
 
-        // 修正了這裡的 ffunction 變回 function
         function initUI() {
             ['dep-b', 'lv-b'].forEach(id => {
                 const sel = document.getElementById(id);
@@ -222,19 +221,41 @@
         document.getElementById('plus').onclick = () => { pCount++; document.getElementById('p-val').innerText = pCount; };
         document.getElementById('minus').onclick = () => { if(pCount > 1) pCount--; document.getElementById('p-val').innerText = pCount; };
 
-        // 任務狀態即時同步
+        // 🟢 切換分頁功能 (無滑動動畫，瞬間切換)
+        function switchTab(idx) {
+            const container = document.getElementById('swipe-container');
+            const btns = document.querySelectorAll('.tab-btn');
+            container.scrollTo({ left: container.clientWidth * idx, behavior: 'auto' });
+            btns.forEach((b, i) => b.classList.toggle('active', i === idx));
+        }
+
+        let isFirstLoad = true; // 紀錄是否為剛開啟網頁
+
+        // 🟢 任務狀態即時同步 (加上自動跳轉邏輯)
         onSnapshot(doc(db, "system_state", "current_task"), (snap) => {
             const active = document.getElementById('task-active'), nw = document.getElementById('task-new');
             if (snap.exists()) {
                 document.getElementById('task-text').innerText = `${snap.data().type} / ${snap.data().address}`;
                 document.getElementById('addr-in').value = snap.data().address;
                 active.style.display = 'block'; nw.style.display = 'none';
+                
+                // 有火警任務：預設切換到「部署回報」(第 0 頁)
+                if (isFirstLoad) {
+                    setTimeout(() => switchTab(0), 150); 
+                    isFirstLoad = false;
+                }
             } else {
                 active.style.display = 'none'; nw.style.display = 'block';
+                
+                // 沒有火警任務：預設切換到「管理指令」(第 2 頁)
+                if (isFirstLoad) {
+                    setTimeout(() => switchTab(2), 150); 
+                    isFirstLoad = false;
+                }
             }
         });
 
-        // 🟢 好友名冊快取 map 與已授權 ID 陣列
+        // 好友名冊快取 map 與已授權 ID 陣列
         let userMap = {};
         let adminIds = [];
 
@@ -257,7 +278,7 @@
             renderAdminList(); // 好友快取更新後，重新渲染已授權名單
         });
 
-        // 🟢 監聽 Firestore 中的已授權管理員名單
+        // 監聽 Firestore 中的已授權管理員名單
         onSnapshot(collection(db, "authorized_admins"), (snapshot) => {
             adminIds = [];
             snapshot.forEach((doc) => {
@@ -266,7 +287,7 @@
             renderAdminList();
         });
 
-        // 🟢 渲染已授權管理員列表
+        // 渲染已授權管理員列表
         function renderAdminList() {
             const container = document.getElementById('authorized-admins-list');
             if (!container) return;
