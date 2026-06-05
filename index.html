@@ -111,7 +111,7 @@
             <button class="btn btn-primary" id="go-deploy">確認部署回報</button>
         </div>
 
-        <!-- 撤離頁(改為返隊) -->
+        <!-- 撤離頁(顯示返隊) -->
         <div class="page">
             <div class="section-title">選擇返隊單位</div>
             <div class="card">
@@ -246,12 +246,10 @@
             const active = document.getElementById('task-active'), nw = document.getElementById('task-new');
             if (snap.exists()) {
                 document.getElementById('task-text').innerText = `${snap.data().type} / ${snap.data().address}`;
-                // 已移除 addr-in 的設值邏輯，避免報錯
                 active.style.display = 'block'; nw.style.display = 'none';
                 
                 // 有火警任務：預設切換到「部署回報」(第 0 頁)
                 if (isFirstLoad) {
-                    // 手機版 LIFF 渲染需要時間，稍微延遲 400 毫秒再跳轉最穩定
                     setTimeout(() => switchTab(0), 400); 
                     isFirstLoad = false;
                 }
@@ -349,9 +347,10 @@
             send(msg, "🚀 資訊已送出");
         };
 
+        // 🟢 這裡修改了：傳送 "離開" 給系統，但畫面顯示 "返隊"
         document.getElementById('go-leave').onclick = () => {
             const t = document.getElementById('lv-t').value;
-            send(`${t}.返隊`, `🚪 ${t} 已返隊`);
+            send(`${t}.離開`, `🚪 ${t} 已返隊`);
         };
 
         document.getElementById('go-start').onclick = () => {
