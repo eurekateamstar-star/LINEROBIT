@@ -31,16 +31,50 @@
         .card { background: #ffffff; border-radius: 12px; padding: 8px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .section-title { font-size: 15px; color: var(--text-gray); margin: 16px 0 8px 4px; font-weight: bold; }
         
-        /* 表單列 - 字體加大優化 */
+        /* 表單列 */
         .form-item { display: flex; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border-color); }
         .form-item:last-child { border-bottom: none; }
-        .form-label { width: 100px; font-size: 18px; font-weight: bold; flex-shrink: 0; color: #333; }
-        select, input { flex-grow: 1; border: none; font-size: 18px; font-weight: bold; outline: none; background: transparent; text-align: right; color: var(--line-green); appearance: none; -webkit-appearance: none; }
+        .form-label { width: 90px; font-size: 18px; font-weight: bold; flex-shrink: 0; color: #333; }
+        
+        /* 垂直排列的表單列 (用於按鈕群組) */
+        .form-item-col { display: flex; flex-direction: column; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid var(--border-color); }
+        .form-item-col:last-child { border-bottom: none; }
+        .form-item-col .form-label { margin-bottom: 12px; width: 100%; }
 
-        /* 人數/水線計數器 */
-        .stepper { display: flex; align-items: center; background: #f0f0f0; border-radius: 25px; padding: 4px; }
-        .step-btn { width: 36px; height: 36px; border: none; background: white; border-radius: 50%; font-size: 20px; font-weight: bold; color: var(--line-green); cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.1);}
-        .step-val { width: 40px; text-align: center; font-weight: bold; font-size: 20px; color: var(--line-green); }
+        select, input[type="text"] { 
+            flex-grow: 1; border: none; font-size: 18px; font-weight: bold; 
+            outline: none; background: transparent; text-align: right; 
+            color: var(--line-green); appearance: none; -webkit-appearance: none; 
+        }
+
+        /* 🟢 單選按鈕群組設計 */
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+        .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; }
+        
+        .radio-btn {
+            padding: 12px 0; border: 1px solid #ddd; border-radius: 8px;
+            background: #f9f9f9; color: #555; font-size: 16px; font-weight: bold;
+            text-align: center; cursor: pointer; transition: 0.15s;
+            -webkit-tap-highlight-color: transparent; /* 移除手機點擊閃爍 */
+        }
+        .radio-btn.active {
+            background: var(--line-green); color: white;
+            border-color: var(--line-green); box-shadow: 0 2px 5px rgba(6, 199, 85, 0.3);
+        }
+
+        /* 自訂人數輸入框特別樣式 */
+        #p-custom {
+            width: 100%; text-align: center; border: 2px solid var(--line-green);
+            border-radius: 8px; padding: 12px; font-size: 18px; font-weight: bold;
+            color: var(--line-green); background: #f4fff8; margin-top: 10px;
+            box-sizing: border-box; display: none; outline: none;
+            -webkit-appearance: none; appearance: none;
+        }
+        #p-custom::placeholder { color: #88c89b; font-weight: normal; }
+
+        /* 移除 number 箭頭 */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
         /* 按鈕風格 */
         .btn { width: 100%; padding: 16px; border-radius: 12px; font-size: 18px; font-weight: bold; border: none; margin-top: 10px; cursor: pointer; transition: 0.2s; }
@@ -52,16 +86,10 @@
 
         /* 動態狀態提示框 */
         .live-summary {
-            background: #e2f0d9;
-            border-left: 6px solid var(--line-green);
-            color: #2e501b;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            font-size: 17px;
-            font-weight: bold;
-            line-height: 1.5;
-            text-align: center;
+            background: #e2f0d9; border-left: 6px solid var(--line-green);
+            color: #2e501b; padding: 15px; border-radius: 10px;
+            margin-bottom: 15px; font-size: 17px; font-weight: bold;
+            line-height: 1.5; text-align: center;
         }
 
         .info-box { background: #fff4e5; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 5px solid var(--warning-orange); }
@@ -108,8 +136,19 @@
                         <option value="九號">九號</option>
                     </select>
                 </div>
-                <div class="form-item"><span class="form-label">進入火場</span>
-                    <div class="stepper"><button class="step-btn" id="minus">-</button><div class="step-val" id="p-val">5</div><button class="step-btn" id="plus">+</button></div>
+                
+                <!-- 🟢 進入火場人數 (按鈕群組) -->
+                <div class="form-item-col">
+                    <span class="form-label">進入火場人數</span>
+                    <div class="grid-3" id="p-group">
+                        <button class="radio-btn" data-val="2">2 人</button>
+                        <button class="radio-btn" data-val="3">3 人</button>
+                        <button class="radio-btn" data-val="4">4 人</button>
+                        <button class="radio-btn active" data-val="5">5 人</button>
+                        <button class="radio-btn" data-val="6">6 人</button>
+                        <button class="radio-btn" data-val="custom">自訂</button>
+                    </div>
+                    <input type="number" id="p-custom" value="7" min="1" max="99" placeholder="請輸入人數數字">
                 </div>
             </div>
             
@@ -122,7 +161,6 @@
                     <option value="第四面">第四面</option>
                     <option value="待命">待命</option>
                 </select></div>
-                <!-- 🟢 執行任務選項已更新 -->
                 <div class="form-item"><span class="form-label">執行任務</span><select id="task-in">
                     <option value="滅火">滅火</option>
                     <option value="搜救">搜救</option>
@@ -132,12 +170,15 @@
                     <option value="休息">休息</option>
                 </select></div>
                 
-                <!-- 新增水線選項 -->
-                <div class="form-item"><span class="form-label">水線</span>
-                    <div class="stepper">
-                        <button class="step-btn" id="w-minus">-</button>
-                        <div class="step-val" id="w-val">0</div>
-                        <button class="step-btn" id="w-plus">+</button>
+                <!-- 🟢 水線 (按鈕群組) -->
+                <div class="form-item-col">
+                    <span class="form-label">水線</span>
+                    <div class="grid-5" id="w-group">
+                        <button class="radio-btn active" data-val="0">0 條</button>
+                        <button class="radio-btn" data-val="1">1 條</button>
+                        <button class="radio-btn" data-val="2">2 條</button>
+                        <button class="radio-btn" data-val="3">3 條</button>
+                        <button class="radio-btn" data-val="4">4 條</button>
                     </div>
                 </div>
             </div>
@@ -156,7 +197,6 @@
 
         <!-- 指令頁 -->
         <div class="page">
-            <!-- 任務狀態區 -->
             <div id="task-active" style="display:none;">
                 <div class="info-box">目前執行任務：<br><b id="task-text" style="font-size: 18px;">載入中...</b></div>
                 <button class="btn btn-end" id="go-end">✅ 結束任務結案存檔</button>
@@ -170,9 +210,7 @@
                 <button class="btn btn-start" id="go-start">🚩 開始任務</button>
             </div>
 
-            <!-- 管理人員設定區 -->
             <div class="section-title" style="margin-top: 24px;">管理人員設定</div>
-            
             <div class="card" style="padding: 12px 16px; margin-bottom: 12px; background-color: #f9f9f9; border-left: 5px solid var(--line-green);">
                 <div style="font-size: 14px; color: var(--text-gray); font-weight: bold; margin-bottom: 8px;">👑 目前已授權管理員：</div>
                 <div id="authorized-admins-list" style="display: flex; flex-wrap: wrap; gap: 6px;">
@@ -225,6 +263,23 @@
             "特搜大隊": ["慈福", "德音", "秀峰"]
         };
 
+        // --- 建立單選按鈕群組邏輯 ---
+        function setupRadioGroup(groupId, callback) {
+            const group = document.getElementById(groupId);
+            if(!group) return;
+            const btns = group.querySelectorAll('.radio-btn');
+            btns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // 移除所有 active 狀態
+                    btns.forEach(b => b.classList.remove('active'));
+                    // 為當前點擊加入 active
+                    e.target.classList.add('active');
+                    // 呼叫回傳函數
+                    if(callback) callback(e.target.dataset.val);
+                });
+            });
+        }
+
         function initUI() {
             ['dep-b', 'lv-b'].forEach(id => {
                 const sel = document.getElementById(id);
@@ -240,8 +295,26 @@
             
             // 綁定更新畫面文字的事件
             ['dep-t', 'leader-in', 'side-in', 'task-in'].forEach(id => {
-                const el = document.getElementById(id);
-                el.addEventListener('change', updateLiveSummary);
+                document.getElementById(id).addEventListener('change', updateLiveSummary);
+            });
+            
+            // 人數自訂輸入框監聽
+            document.getElementById('p-custom').addEventListener('input', updateLiveSummary);
+
+            // 初始化單選按鈕
+            setupRadioGroup('p-group', (val) => {
+                const customInput = document.getElementById('p-custom');
+                if (val === 'custom') {
+                    customInput.style.display = 'block';
+                    customInput.focus();
+                } else {
+                    customInput.style.display = 'none';
+                }
+                updateLiveSummary();
+            });
+
+            setupRadioGroup('w-group', () => {
+                updateLiveSummary();
             });
             
             updateLiveSummary(); // 初始載入顯示
@@ -255,33 +328,42 @@
                 sel.innerHTML = ""; fireData[brigade].forEach(t => sel.options.add(new Option(t + "分隊", t + "分隊")));
             });
             ['dep-t', 'lv-t'].forEach(id => document.getElementById(id).value = team);
-            updateLiveSummary(); // 更新動態文字
+            updateLiveSummary();
         }
 
-        // --- 計數器邏輯 ---
-        let pCount = 5; // 人數預設5
-        document.getElementById('plus').onclick = () => { pCount++; document.getElementById('p-val').innerText = pCount; updateLiveSummary(); };
-        document.getElementById('minus').onclick = () => { if(pCount > 1) pCount--; document.getElementById('p-val').innerText = pCount; updateLiveSummary(); };
+        // 🟢 取得當前選擇的人數與水線
+        function getPCount() {
+            const activeBtn = document.querySelector('#p-group .radio-btn.active');
+            if (!activeBtn) return "5";
+            const val = activeBtn.dataset.val;
+            if (val === 'custom') {
+                return document.getElementById('p-custom').value || "0";
+            }
+            return val;
+        }
 
-        let wCount = 0; // 水線預設0
-        document.getElementById('w-plus').onclick = () => { if(wCount < 4) { wCount++; document.getElementById('w-val').innerText = wCount; updateLiveSummary(); } };
-        document.getElementById('w-minus').onclick = () => { if(wCount > 0) { wCount--; document.getElementById('w-val').innerText = wCount; updateLiveSummary(); } };
+        function getWCount() {
+            const activeBtn = document.querySelector('#w-group .radio-btn.active');
+            return activeBtn ? activeBtn.dataset.val : "0";
+        }
 
-        // --- 動態更新上方文字邏輯 ---
+        // 🟢 動態更新上方文字邏輯
         function updateLiveSummary() {
             try {
                 const teamFull = document.getElementById('dep-t').value || "";
-                const team = teamFull.replace("分隊", ""); // 把"新莊分隊"變成"新莊"
+                const team = teamFull.replace("分隊", ""); 
                 const leader = document.getElementById('leader-in').value || "";
                 const side = document.getElementById('side-in').value || "";
+                
+                const pCount = getPCount();
+                const wCount = getWCount();
                 
                 const summaryBox = document.getElementById('live-summary');
                 summaryBox.innerText = `${team}${leader} 進入火場 ${pCount}人 方位${side} ${wCount}條水線`;
             } catch(e) {}
         }
 
-
-        // 🟢 切換分頁功能
+        // 切換分頁功能
         function switchTab(idx) {
             const container = document.getElementById('swipe-container');
             const btns = document.querySelectorAll('.tab-btn');
@@ -362,7 +444,7 @@
             btns.forEach((b, i) => b.classList.toggle('active', i === idx));
         };
 
-        // --- 送出指令 (格式變更) ---
+        // --- 送出指令 ---
         document.getElementById('go-deploy').onclick = () => {
             const b = document.getElementById('dep-b').value;
             const t = document.getElementById('dep-t').value;
@@ -372,8 +454,11 @@
             const side = document.getElementById('side-in').value;
             const task = document.getElementById('task-in').value;
             
-            // ⚠️ 機器人收到的訊息格式改為: 分隊.帶隊官.人數.方位.任務.水線
-            const msg = `${t}.${leader}.${pCount}人.${side}.${task}.${wCount}條水線`;
+            const pCountVal = getPCount();
+            const wCountVal = getWCount();
+            
+            // ⚠️ 訊息格式: 分隊.帶隊官.人數.方位.任務.水線
+            const msg = `${t}.${leader}.${pCountVal}人.${side}.${task}.${wCountVal}條水線`;
             send(msg, "🚀 資訊已送出");
         };
 
