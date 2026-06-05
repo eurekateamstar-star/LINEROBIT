@@ -27,32 +27,34 @@
         .swipe-wrapper::-webkit-scrollbar { display: none; }
         .page { flex: 0 0 100%; width: 100%; height: 100%; scroll-snap-align: start; padding: 70px 16px 40px 16px; box-sizing: border-box; overflow-y: auto; }
 
-        /* 卡片設計 */
-        .card { background: #ffffff; border-radius: 12px; padding: 8px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        /* 卡片設計 - 加入防撐破機制 */
+        .card { background: #ffffff; border-radius: 12px; padding: 8px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box; }
         .section-title { font-size: 15px; color: var(--text-gray); margin: 16px 0 8px 4px; font-weight: bold; }
         
         /* 表單列 - 單行 */
-        .form-item { display: flex; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border-color); }
+        .form-item { display: flex; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border-color); width: 100%; box-sizing: border-box; }
         .form-item:last-child { border-bottom: none; }
         .form-label { width: 90px; font-size: 18px; font-weight: bold; flex-shrink: 0; color: #333; }
         
-        /* 🟢 表單列 - 雙欄並排 (新加入) */
-        .form-item-split { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border-color); }
+        /* 表單列 - 雙欄並排 */
+        .form-item-split { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border-color); width: 100%; box-sizing: border-box; }
         .form-item-split:last-child { border-bottom: none; }
-        .form-half { display: flex; align-items: center; flex: 1; overflow: hidden; }
+        .form-half { display: flex; align-items: center; flex: 1; overflow: hidden; min-width: 0; }
         .form-half .form-label { width: auto; margin-right: 8px; font-size: 18px; font-weight: bold; color: #333; flex-shrink: 0; }
-        .form-half select { flex-grow: 1; min-width: 0; text-overflow: ellipsis; text-align: right; }
-        .divider-v { width: 1px; height: 24px; background-color: var(--border-color); margin: 0 16px; flex-shrink: 0; } /* 中間垂直分隔線 */
+        .divider-v { width: 1px; height: 24px; background-color: var(--border-color); margin: 0 16px; flex-shrink: 0; }
 
         /* 垂直排列的表單列 (用於按鈕群組) */
-        .form-item-col { display: flex; flex-direction: column; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid var(--border-color); }
+        .form-item-col { display: flex; flex-direction: column; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid var(--border-color); width: 100%; box-sizing: border-box; }
         .form-item-col:last-child { border-bottom: none; }
         .form-item-col .form-label { margin-bottom: 12px; width: 100%; }
 
+        /* 🟢 統一修復 Input & Select 的寬度溢出問題 */
         select, input[type="text"] { 
-            flex-grow: 1; border: none; font-size: 18px; font-weight: bold; 
+            flex: 1; min-width: 0; width: 100%;
+            border: none; font-size: 18px; font-weight: bold; 
             outline: none; background: transparent; text-align: right; 
             color: var(--line-green); appearance: none; -webkit-appearance: none; 
+            padding: 0; margin: 0;
         }
 
         /* 單選按鈕群組設計 */
@@ -85,7 +87,7 @@
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
         /* 按鈕風格 */
-        .btn { width: 100%; padding: 16px; border-radius: 12px; font-size: 18px; font-weight: bold; border: none; margin-top: 10px; cursor: pointer; transition: 0.2s; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; font-size: 18px; font-weight: bold; border: none; margin-top: 10px; cursor: pointer; transition: 0.2s; box-sizing: border-box; }
         .btn:active { opacity: 0.7; transform: scale(0.98); }
         .btn-primary { background-color: var(--line-green); color: white; }
         .btn-start { background-color: var(--emergency-red); color: white; }
@@ -97,10 +99,10 @@
             background: #e2f0d9; border-left: 6px solid var(--line-green);
             color: #2e501b; padding: 15px; border-radius: 10px;
             margin-bottom: 15px; font-size: 17px; font-weight: bold;
-            line-height: 1.5; text-align: center;
+            line-height: 1.5; text-align: center; width: 100%; box-sizing: border-box;
         }
 
-        .info-box { background: #fff4e5; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 5px solid var(--warning-orange); }
+        .info-box { background: #fff4e5; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 5px solid var(--warning-orange); width: 100%; box-sizing: border-box;}
 
         /* Toast 提示 */
         #toast {
@@ -135,7 +137,7 @@
             <div class="card">
                 <div class="form-item"><span class="form-label">大隊</span><select id="dep-b"></select></div>
                 
-                <!-- 🟢 分隊與帶隊官 (雙欄並排) -->
+                <!-- 分隊與帶隊官 (雙欄並排) -->
                 <div class="form-item-split">
                     <div class="form-half">
                         <span class="form-label">分隊</span>
@@ -171,7 +173,7 @@
             <div class="section-title">位置任務</div>
             <div class="card">
                 
-                <!-- 🟢 方位與執行任務 (雙欄並排) -->
+                <!-- 方位與執行任務 (雙欄並排) -->
                 <div class="form-item-split">
                     <div class="form-half">
                         <span class="form-label">方位</span>
