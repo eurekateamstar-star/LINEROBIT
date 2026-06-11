@@ -119,17 +119,12 @@
     <div class="swipe-wrapper" id="swipe-container">
         <!-- 部署頁 -->
         <div class="page">
-
             <div class="section-title">單位選擇</div>
             <div class="card">
                 <div class="form-item"><span class="form-label">大隊</span><select id="dep-b"></select></div>
                 
-                <!-- 分隊與帶隊官 (雙欄並排) -->
                 <div class="form-item-split">
-                    <div class="form-half">
-                        <span class="form-label">分隊</span>
-                        <select id="dep-t"></select>
-                    </div>
+                    <div class="form-half"><span class="form-label">分隊</span><select id="dep-t"></select></div>
                     <div class="divider-v"></div>
                     <div class="form-half">
                         <span class="form-label">帶隊官</span>
@@ -142,7 +137,6 @@
                     </div>
                 </div>
                 
-                <!-- 進入火場人數 (按鈕群組) -->
                 <div class="form-item-col">
                     <span class="form-label">進入火場人數</span>
                     <div class="grid-3" id="p-group">
@@ -159,8 +153,6 @@
             
             <div class="section-title">位置任務</div>
             <div class="card">
-                
-                <!-- 方位與執行任務 (雙欄並排) -->
                 <div class="form-item-split">
                     <div class="form-half">
                         <span class="form-label">方位</span>
@@ -186,7 +178,6 @@
                     </div>
                 </div>
                 
-                <!-- 水線 (按鈕群組) -->
                 <div class="form-item-col">
                     <span class="form-label">水線</span>
                     <div class="grid-5" id="w-group">
@@ -201,7 +192,7 @@
             <button class="btn btn-primary" id="go-deploy">確認部署回報</button>
         </div>
 
-        <!-- 撤離頁(顯示返隊) -->
+        <!-- 撤離頁 -->
         <div class="page">
             <div class="section-title">選擇返隊單位</div>
             <div class="card">
@@ -226,6 +217,7 @@
                 <button class="btn btn-start" id="go-start">🚩 開始任務</button>
             </div>
 
+            <!-- 管理員名單區塊 -->
             <div class="section-title" style="margin-top: 24px;">管理人員設定</div>
             <div class="card" style="padding: 12px 16px; margin-bottom: 12px; background-color: #f9f9f9; border-left: 5px solid var(--line-green);">
                 <div style="font-size: 14px; color: var(--text-gray); font-weight: bold; margin-bottom: 8px;">👑 目前已授權管理員：</div>
@@ -254,12 +246,11 @@
     </div>
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-   <script type="module">
-        // 1. 補上 setDoc, deleteDoc, serverTimestamp (用於寫入資料庫)
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, collection, query, where, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 🟢 移交給別人時，請他們換成自己的 Firebase Config
+        // 🟢 未來移交時，對方只需換這裡的 Config
         const firebaseConfig = { 
             apiKey: "AIzaSyD9oJirgoJCTU7h-ODfSpfwC80E5fqze2A", 
             authDomain: "clawone-6445c.firebaseapp.com", 
@@ -271,8 +262,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 用來儲存操作者的 LINE 名字
-        let userName = "未知人員";
+        let userName = "未知人員"; // 儲存操作者名字
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -317,11 +307,8 @@
             
             setupRadioGroup('p-group', (val) => {
                 const customInput = document.getElementById('p-custom');
-                if (val === 'custom') {
-                    customInput.style.display = 'block'; customInput.focus();
-                } else {
-                    customInput.style.display = 'none';
-                }
+                if (val === 'custom') { customInput.style.display = 'block'; customInput.focus(); } 
+                else { customInput.style.display = 'none'; }
             });
             setupRadioGroup('w-group');
         }
@@ -358,9 +345,55 @@
             setTimeout(() => { container.style.scrollBehavior = 'smooth'; }, 50);
         }
 
+        // --- 處理名單與管理員載入 ---
+        let userMap = {}; let adminIds = [];
+        const userSelect = document.getElementById('admin-user-select');
+        const uidInput = document.getElementById('admin-uid-input');
+
+        // 監聽 Firebase 中有打開過網頁的人，變成下拉選單
+        onSnapshot(query(collection(db, "line_users"), where("status", "==", "active")), (snapshot) => {
+            userSelect.innerHTML = '<option value="">-- 請選擇成員 --</option>';
+            userMap = {};
+            snapshot.forEach((doc) => {
+                const userData = doc.data();
+                userMap[doc.id] = userData.name;
+                const opt = document.createElement('option');
+                opt.value = userData.userId;
+                opt.innerText = userData.name;
+                userSelect.appendChild(opt);
+            });
+            renderAdminList();
+        });
+
+        // 監聽有管理權限的人
+        onSnapshot(collection(db, "authorized_admins"), (snapshot) => {
+            adminIds = [];
+            snapshot.forEach((doc) => { adminIds.push(doc.id); });
+            renderAdminList();
+        });
+
+        function renderAdminList() {
+            const container = document.getElementById('authorized-admins-list');
+            if (!container) return;
+            if (adminIds.length === 0) {
+                container.innerHTML = '<span style="color: var(--text-gray); font-size: 14px;">⚠️ 目前暫無動態授權管理員</span>';
+                return;
+            }
+            container.innerHTML = "";
+            adminIds.forEach((id) => {
+                const name = userMap[id] || `管理人員 (${id.substring(0, 6)}...)`;
+                const span = document.createElement('span');
+                span.style.cssText = "display: inline-block; background: #e2f0d9; color: #385723; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: bold;";
+                span.innerHTML = `👤 ${name}`;
+                container.appendChild(span);
+            });
+        }
+
+        // 下拉選單連動輸入框
+        userSelect.onchange = (e) => { uidInput.value = e.target.value; };
+
         let isFirstLoad = true;
 
-        // 監聽任務狀態
         onSnapshot(doc(db, "system_state", "current_task"), (snap) => {
             const active = document.getElementById('task-active'), nw = document.getElementById('task-new');
             if (snap.exists()) {
@@ -373,17 +406,24 @@
             }
         });
 
-        let userMap = {}; let adminIds = [];
-        const userSelect = document.getElementById('admin-user-select');
-        const uidInput = document.getElementById('admin-uid-input');
-
-        // 🟢 移交給別人時，請他們換成自己的 LIFF ID
+        // --- LIFF 初始化與自動註冊 ---
+        // 🟢 未來移交時，對方只需換這裡的 LIFF ID
         liff.init({ liffId: "2010239154-mvwJXGM7" }).then(() => { 
             if(!liff.isLoggedIn()) {
                 liff.login(); 
             } else {
-                // 自動抓取帶隊官的 LINE 名字
-                liff.getProfile().then(profile => { userName = profile.displayName; }).catch(err => console.error(err));
+                liff.getProfile().then(async (profile) => { 
+                    userName = profile.displayName; 
+                    // 🌟 這裡就是自動註冊：把點開網頁的人存進 Firebase，供管理員挑選
+                    try {
+                        await setDoc(doc(db, "line_users", profile.userId), {
+                            userId: profile.userId,
+                            name: profile.displayName,
+                            status: "active",
+                            lastLogin: serverTimestamp()
+                        }, { merge: true });
+                    } catch (error) { console.error("註冊使用者失敗", error); }
+                }).catch(err => console.error(err));
                 initUI(); 
             }
         });
@@ -396,7 +436,7 @@
             btns.forEach((b, i) => b.classList.toggle('active', i === idx));
         };
 
-        // 🚀 核心一：確認部署回報 (直接寫入 Firebase)
+        // --- 核心按鈕動作 ---
         document.getElementById('go-deploy').onclick = async () => {
             const b = document.getElementById('dep-b').value;
             const t = document.getElementById('dep-t').value;
@@ -405,8 +445,7 @@
             const leader = document.getElementById('leader-in').value;
             const side = document.getElementById('side-in').value;
             const task = document.getElementById('task-in').value;
-            const pCountVal = getPCount();
-            const wCountVal = getWCount();
+            const pCountVal = getPCount(); const wCountVal = getWCount();
             
             const deploymentData = {
                 team: t, leader: leader, people: pCountVal + "人",
@@ -415,15 +454,11 @@
             };
 
             try {
-                // 1. 直達大螢幕：寫入 Firebase
                 await setDoc(doc(db, "fire_deployments", t), deploymentData);
-                // 2. 留存紀錄：在 LINE 群組發言
-                const msg = `${t}.${leader}.${pCountVal}人.${side}.${task}.${wCountVal}條水線`;
-                send(msg, "🚀 資訊已更新至大螢幕");
-            } catch (error) { showToast("❌ 寫入失敗，請檢查權限"); console.error(error); }
+                send(`${t}.${leader}.${pCountVal}人.${side}.${task}.${wCountVal}條水線`, "🚀 資訊已更新至大螢幕");
+            } catch (error) { showToast("❌ 寫入失敗，請檢查權限"); }
         };
 
-        // 🚪 核心二：分隊返隊 (從部署名單刪除，移至返隊名單)
         document.getElementById('go-leave').onclick = async () => {
             const t = document.getElementById('lv-t').value;
             try {
@@ -433,7 +468,6 @@
             } catch (error) { showToast("❌ 處理失敗"); }
         };
 
-        // 🚩 核心三：開始新任務
         document.getElementById('go-start').onclick = async () => {
             const t = document.getElementById('t-type').value, a = document.getElementById('t-addr').value;
             if(t && a) {
@@ -444,7 +478,6 @@
             } else showToast("⚠️ 請填寫完整資訊");
         };
 
-        // ✅ 核心四：結束任務
         document.getElementById('go-end').onclick = async () => {
             try {
                 await deleteDoc(doc(db, "system_state", "current_task"));
@@ -452,19 +485,34 @@
             } catch (error) { showToast("❌ 結案失敗"); }
         };
 
-        // 發送文字到 LINE 群組的共用函式
+        // 🌟 授權管理員 (直接存入 Firebase)
+        document.getElementById('go-add-admin').onclick = async () => {
+            const uid = uidInput.value.trim();
+            if (!uid || !uid.startsWith("U") || uid.length !== 33) return showToast("⚠️ 請選擇成員");
+            try {
+                await setDoc(doc(db, "authorized_admins", uid), { addedBy: userName, addTime: serverTimestamp() });
+                showToast("✅ 已成功授權為管理員");
+            } catch (error) { showToast("❌ 授權失敗"); }
+        };
+
+        // 🌟 移除權限 (直接從 Firebase 刪除)
+        document.getElementById('go-remove-admin').onclick = async () => {
+            const uid = uidInput.value.trim();
+            if (!uid || !uid.startsWith("U") || uid.length !== 33) return showToast("⚠️ 請選擇成員");
+            try {
+                await deleteDoc(doc(db, "authorized_admins", uid));
+                showToast("🚪 已移除該員管理權限");
+            } catch (error) { showToast("❌ 移除失敗"); }
+        };
+
         function send(txt, successMsg) {
             if(liff.isInClient()) {
                 liff.sendMessages([{type:'text', text:txt}]).then(() => {
                     showToast(successMsg);
-                    setTimeout(() => liff.closeWindow(), 1000); // 1秒後自動關閉畫面
+                    setTimeout(() => liff.closeWindow(), 1000);
                 });
-            } else {
-                showToast("測試環境無法送出"); console.log("即將送出: ", txt);
-            }
+            } else { showToast("測試環境無法送出"); console.log("即將送出: ", txt); }
         }
-
-        // (授權管理員的功能若為純前端架構，可暫時不需修改，因為主要看 Firebase rules)
     </script>
 </body>
 </html>
