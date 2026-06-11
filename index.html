@@ -8,7 +8,11 @@
         :root {
             --line-green: #06C755; --bg-gray: #F4F4F4; --border-color: #EBEBEB;
             --text-dark: #111111; --text-gray: #888888; --emergency-red: #FF5B5B;
-            --warning-orange: #fd7e14; --map-blue: #007AFF;
+            --warning-orange: #fd7e14; 
+            /* 戰術看板專用變數 */
+            --frame-gray: #3a3f42; --inner-bg: #121416; --neon-blue: #3399ff;
+            --neon-red: #ff4d4d; --neon-gold: #ffcc00; --neon-green: #00ffaa;
+            --safe-green: #28a745; --evac-orange: #fd7e14;
         }
 
         body { 
@@ -17,17 +21,17 @@
             color: var(--text-dark); height: 100vh; width: 100vw; overflow: hidden;
         }
 
-        /* 導航列 (修改為可容納4個Tab) */
-        .nav-tabs { display: flex; background: #ffffff; position: fixed; top: 0; width: 100%; z-index: 999; border-bottom: 1px solid var(--border-color); }
-        .tab-btn { flex: 1; padding: 15px 0; text-align: center; font-size: 14px; color: var(--text-gray); position: relative; cursor: pointer; white-space: nowrap;}
-        .tab-btn.active { color: var(--line-green); font-weight: bold; }
+        /* 導航列 */
+        .nav-tabs { display: flex; background: #ffffff; position: fixed; top: 0; width: 100%; z-index: 999; border-bottom: 1px solid var(--border-color); height: 50px;}
+        .tab-btn { flex: 1; padding: 15px 0; text-align: center; font-size: 14px; color: var(--text-gray); position: relative; cursor: pointer; white-space: nowrap; font-weight: bold;}
+        .tab-btn.active { color: var(--line-green); font-weight: 900; }
         .tab-btn.active::after { content: ""; position: absolute; bottom: 0; left: 20%; width: 60%; height: 3px; background-color: var(--line-green); border-radius: 3px; }
 
         .swipe-wrapper { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
         .swipe-wrapper::-webkit-scrollbar { display: none; }
-        .page { flex: 0 0 100%; width: 100%; height: 100%; scroll-snap-align: start; padding: 70px 16px 40px 16px; box-sizing: border-box; overflow-y: auto; }
+        .page { flex: 0 0 100%; width: 100%; height: 100%; scroll-snap-align: start; padding: 70px 16px 40px 16px; box-sizing: border-box; overflow-y: auto; position: relative;}
 
-        /* 卡片設計 */
+        /* 表單與卡片設計 */
         .card { background: #ffffff; border-radius: 12px; padding: 8px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box; }
         .section-title { font-size: 15px; color: var(--text-gray); margin: 16px 0 8px 4px; font-weight: bold; }
         
@@ -46,11 +50,9 @@
         .form-item-col .form-label { margin-bottom: 12px; width: 100%; }
 
         select, input[type="text"] { 
-            flex: 1; min-width: 0; width: 100%;
-            border: none; font-size: 18px; font-weight: bold; 
-            outline: none; background: transparent; text-align: right; 
-            color: var(--line-green); appearance: none; -webkit-appearance: none; 
-            padding: 0; margin: 0;
+            flex: 1; min-width: 0; width: 100%; border: none; font-size: 18px; font-weight: bold; 
+            outline: none; background: transparent; text-align: right; color: var(--line-green); 
+            appearance: none; -webkit-appearance: none; padding: 0; margin: 0;
         }
 
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
@@ -59,25 +61,13 @@
         .radio-btn {
             padding: 12px 0; border: 1px solid #ddd; border-radius: 8px;
             background: #f9f9f9; color: #555; font-size: 14px; font-weight: bold;
-            text-align: center; cursor: pointer; transition: 0.15s;
-            -webkit-tap-highlight-color: transparent; white-space: nowrap;
+            text-align: center; cursor: pointer; transition: 0.15s; -webkit-tap-highlight-color: transparent; white-space: nowrap;
         }
-        .radio-btn.active {
-            background: var(--line-green); color: white;
-            border-color: var(--line-green); box-shadow: 0 2px 5px rgba(6, 199, 85, 0.3);
-        }
+        .radio-btn.active { background: var(--line-green); color: white; border-color: var(--line-green); box-shadow: 0 2px 5px rgba(6, 199, 85, 0.3); }
 
-        #p-custom {
-            width: 100%; text-align: center; border: 2px solid var(--line-green);
-            border-radius: 8px; padding: 12px; font-size: 18px; font-weight: bold;
-            color: var(--line-green); background: #f4fff8; margin-top: 10px;
-            box-sizing: border-box; display: none; outline: none;
-            -webkit-appearance: none; appearance: none;
-        }
+        #p-custom { width: 100%; text-align: center; border: 2px solid var(--line-green); border-radius: 8px; padding: 12px; font-size: 18px; font-weight: bold; color: var(--line-green); background: #f4fff8; margin-top: 10px; box-sizing: border-box; display: none; outline: none; -webkit-appearance: none; appearance: none; }
         #p-custom::placeholder { color: #88c89b; font-weight: normal; }
-
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
         .btn { width: 100%; padding: 16px; border-radius: 12px; font-size: 18px; font-weight: bold; border: none; margin-top: 10px; cursor: pointer; transition: 0.2s; box-sizing: border-box; }
         .btn:active { opacity: 0.7; transform: scale(0.98); }
@@ -88,24 +78,87 @@
 
         .info-box { background: #fff4e5; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 5px solid var(--warning-orange); width: 100%; box-sizing: border-box;}
 
-        #toast {
-            position: fixed; bottom: -60px; left: 50%; transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8); color: white; padding: 12px 25px;
-            border-radius: 30px; font-size: 16px; z-index: 10001;
-            transition: bottom 0.4s;
-        }
+        #toast { position: fixed; bottom: -60px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.9); color: white; padding: 12px 25px; border-radius: 30px; font-size: 14px; font-weight: bold; z-index: 10001; transition: bottom 0.4s; box-shadow: 0 4px 15px rgba(0,0,0,0.5); white-space: nowrap; text-align: center;}
         #toast.show { bottom: 30px; }
+
+        /* ================= 戰術看板專屬 CSS ================= */
+        .compact-header { display: flex; justify-content: space-between; align-items: center; background: #111; border-bottom: 2px solid #333; padding: 2px 10px; height: 50px; flex-shrink: 0; color: #eee;}
+        .header-left { flex: 1; display: flex; flex-direction: column; align-items: flex-start; }
+        .stat-label { font-size: 9px; color: #888; font-weight: bold; letter-spacing: 1px;}
+        .stat-val { font-size: 20px; color: var(--neon-gold); font-family: Impact, sans-serif; line-height: 1; margin-top: 1px; }
+
+        .header-center { flex: 2; display: flex; flex-direction: column; align-items: center; text-align: center; overflow: hidden;}
+        #task-type { color: var(--neon-red); font-size: 15px; font-weight: 900; margin: 0; letter-spacing: 1px; white-space: nowrap; }
+        #task-address { color: var(--neon-blue); font-size: 10px; margin-top: 2px; white-space: nowrap; font-weight: bold;}
+
+        .header-right { flex: 1; display: flex; flex-direction: column; align-items: flex-end; }
+        #live-date { color: #88ccff; font-size: 9px; font-family: monospace; font-weight: bold; margin-bottom: 2px;}
+        #live-clock { color: var(--neon-green); font-size: 14px; font-family: monospace; font-weight: bold; line-height: 1; }
+
+        .tactical-grid { 
+            display: grid; flex-grow: 1; padding: 6px; gap: 6px;
+            grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; 
+            grid-template-areas: ". s3 ." "s2 core s4" ". s1 ."; 
+            height: calc(100vh - 100px); width: 100%; box-sizing: border-box; color: #eee;
+        }
+
+        .heavy-sector { background: var(--inner-bg); border: 1px solid var(--frame-gray); border-radius: 6px; display: flex; flex-direction: column; width: 100%; height: 100%; position: relative; }
+        .sector-head { background: #2a2d31; padding: 3px 6px; font-size: 11px; font-weight: bold; border-bottom: 1px solid #000; display: flex; justify-content: space-between; align-items: center; color: #ccc; border-radius: 5px 5px 0 0; white-space: nowrap; }
+        .sector-count { background: #000; color: var(--neon-gold); padding: 1px 5px; border-radius: 6px; font-size: 11px; border: 1px solid #444; }
+
+        .squad-badge { position: absolute; top: -16px; left: 8px; background: #d90429; color: #fff; border: 1px solid #ffccd5; font-size: 10px; font-weight: 900; padding: 2px 7px; border-radius: 12px; z-index: 100; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.9); letter-spacing: 1px; white-space: nowrap; }
+        .zone-core .squad-badge { background: var(--neon-gold); color: #000; border-color: #000; }
+
+        .zone-core { grid-area: core; border-color: #5a1a1a; box-shadow: inset 0 0 15px rgba(255, 51, 51, 0.15); transform: scale(0.96); }
+        .zone-core .sector-head { background: #660000; color: #fff; border-bottom: 1px solid var(--neon-red); }
+        .zone-1 { grid-area: s1; border-top: 2px solid var(--neon-blue); } 
+        .zone-2 { grid-area: s2; border-right: 2px solid var(--neon-blue); } 
+        .zone-3 { grid-area: s3; border-bottom: 2px solid var(--neon-blue); } 
+        .zone-4 { grid-area: s4; border-left: 2px solid var(--neon-blue); } 
+
+        .unit-list { flex-grow: 1; overflow-y: auto; padding: 4px; display: grid; grid-template-columns: 1fr; gap: 3px; align-content: start; }
+        .unit-list::-webkit-scrollbar { display: none; }
+
+        .unit-plate { background: #1a1c1e; border: 1px solid #333; border-left: 3px solid var(--safe-green); padding: 3px 5px; border-radius: 4px; cursor: pointer; transition: background 0.1s; display: flex; flex-direction: column; justify-content: space-between; min-height: 38px; }
+        .unit-plate:active { background: #333; }
+        .zone-core .unit-plate { border-left-color: var(--neon-red); }
+        .plate-standby { border-left-color: var(--neon-gold) !important; }
+
+        .plate-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .unit-name { font-weight: bold; color: var(--neon-gold); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; margin-right: 2px; }
+        .unit-pax { color: #fff; font-size: 9px; background: #000; padding: 1px 3px; border-radius: 2px; white-space: nowrap; flex-shrink: 0;}
+        .unit-task { color: #ccc; font-size: 9px; font-weight: bold; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
+        .unit-time { color: var(--neon-green); font-family: monospace; font-size: 9px; font-weight: bold; margin-top: 1px; white-space: nowrap;}
+
+        /* 浮動按鈕群 (絕對定位在該頁面內) */
+        .btn-group { position: absolute; bottom: 20px; right: 10px; z-index: 500; display: flex; flex-direction: column; gap: 8px; }
+        .float-btn { background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(2px); border: 1px solid #666; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.8); cursor: pointer; text-align: center; }
+        #evac-btn { border-color: var(--evac-orange); color: var(--evac-orange); } 
+        #standby-btn { border-color: var(--neon-gold); color: var(--neon-gold); }
+        
+        /* 彈出視窗 (Fixed 覆蓋全域) */
+        .modal { display: none; position: fixed; z-index: 10000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
+        .modal-box { background: #1a1c1e; border: 2px solid #555; width: 90%; max-width: 600px; margin: 15% auto; max-height: 70vh; border-radius: 6px; display: flex; flex-direction: column; }
+        .modal-head { padding: 12px; background: #000; color: var(--neon-gold); font-size: 15px; font-weight: bold; text-align: center; border-bottom: 1px solid #444; }
+        .log-item { padding: 10px; border-bottom: 1px solid #333; color: #ccc; font-size: 13px; display: flex; justify-content: space-between; cursor: pointer; align-items: center;}
+        .log-item:hover { background: #222; }
+        .close-btn { background: #aa0000; color: #fff; border: none; padding: 12px; font-weight: bold; cursor: pointer; font-size: 14px; border-radius: 0 0 4px 4px;}
+        
+        /* 回放全螢幕視窗 */
+        #playback-modal .modal-box { width: 98%; max-width: 1000px; height: 95vh; max-height: 95vh; margin: 2% auto; background: #050505; border-color: var(--neon-blue); display: flex; flex-direction: column;}
+        #pb-title { background: #002244; color: var(--neon-blue); border-bottom: 2px solid var(--neon-blue); }
+        #playback-modal .tactical-grid { height: auto; flex-grow: 1; }
+        .pb-evac-zone { background: #111; border-top: 1px solid #333; padding: 8px; display: flex; flex-wrap: wrap; gap: 5px; max-height: 120px; overflow-y: auto;}
     </style>
 </head>
 <body>
 
     <div id="toast">提示訊息</div>
 
-    <!-- 🌟 更新：導航列新增「火災圖資」 -->
     <div class="nav-tabs">
         <div class="tab-btn active" data-idx="0">部署回報</div>
         <div class="tab-btn" data-idx="1">分隊返隊</div>
-        <div class="tab-btn" data-idx="2">火災圖資</div>
+        <div class="tab-btn" data-idx="2">戰術圖資</div>
         <div class="tab-btn" data-idx="3">管理指令</div>
     </div>
 
@@ -184,7 +237,6 @@
                 </div>
             </div>
 
-            <!-- === 現場拍照區塊 === -->
             <div class="section-title">現場照片 (選填)</div>
             <div class="card" style="text-align: center;">
                 <input type="file" id="photo-input" accept="image/*" capture="environment" style="display: none;">
@@ -208,40 +260,53 @@
             <button class="btn btn-leave" id="go-leave">確認分隊返隊</button>
         </div>
 
-        <!-- ================= 🌟 第3頁：火災圖資頁 (新增) ================= -->
-        <div class="page">
-            <div class="info-box" style="border-left: 5px solid var(--map-blue); background: #eef5ff; margin-bottom: 10px;">
-                <span style="color: var(--map-blue); font-weight: bold;" id="map-address">📍 目前無任務地點</span>
+        <!-- ================= 🌟 第3頁：戰術圖資看板 (整合十字極限版) ================= -->
+        <div class="page" id="tab-dashboard" style="padding: 50px 0 0 0; background: #050505; display: flex; flex-direction: column;">
+            
+            <div class="compact-header">
+                <div class="header-left"><span class="stat-label">管制人數</span><div class="stat-val" id="grand-total">0</div></div>
+                <div class="header-center"><h1 id="task-type">系統待命中</h1><div id="task-address">等待派遣指令...</div></div>
+                <div class="header-right"><span id="live-date">YYYY-MM-DD</span><span id="live-clock">00:00:00</span></div>
             </div>
 
-            <div class="section-title" style="margin-top: 0;">環境與水源圖資</div>
-            <!-- 地圖區塊 (預設可套用 Google Maps iframe 或內政部圖資) -->
-            <div class="card" style="padding: 0; height: 320px; overflow: hidden; border: 1px solid var(--border-color); border-radius: 12px;">
-                <iframe 
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3614.467687002012!2d121.4604558!3d25.0521329!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3442a86851f55b93%3A0xc3f8e5b6b3e8e8e!2z5paw5YyX5biC5pS_5bqc5raI6Ziy5bGA!5e0!3m2!1szh-TW!2stw!4v1718105000000!5m2!1szh-TW!2stw" 
-                    width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
-                </iframe>
-            </div>
-
-            <div class="section-title">圖層與資訊切換</div>
-            <div class="card">
-                <div class="grid-3" id="map-layer-group">
-                    <button class="radio-btn active">🗺️ 現場地圖</button>
-                    <button class="radio-btn">🚰 消防栓</button>
-                    <button class="radio-btn" style="color:var(--emergency-red);">⚠️ 毒化災</button>
+            <div class="tactical-grid" id="main-grid">
+                <div class="heavy-sector zone-3" id="zone-3">
+                    <div class="squad-badge" id="badge-3"></div>
+                    <div class="sector-head"><span>第三面<small id="water-count-3" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span><span class="sector-count" id="c-zone-3">0</span></div>
+                    <div class="unit-list"></div>
+                </div>
+                <div class="heavy-sector zone-2" id="zone-2">
+                    <div class="squad-badge" id="badge-2"></div>
+                    <div class="sector-head"><span>第二面<small id="water-count-2" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span><span class="sector-count" id="c-zone-2">0</span></div>
+                    <div class="unit-list"></div>
+                </div>
+                <div class="heavy-sector zone-core" id="zone-center">
+                    <div class="squad-badge" id="badge-center"></div>
+                    <div class="sector-head"><span>火場內部<small id="water-count-center" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span><span class="sector-count" id="c-zone-center">0</span></div>
+                    <div class="unit-list"></div>
+                </div>
+                <div class="heavy-sector zone-4" id="zone-4">
+                    <div class="squad-badge" id="badge-4"></div>
+                    <div class="sector-head"><span>第四面<small id="water-count-4" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span><span class="sector-count" id="c-zone-4">0</span></div>
+                    <div class="unit-list"></div>
+                </div>
+                <div class="heavy-sector zone-1" id="zone-1">
+                    <div class="squad-badge" id="badge-1"></div>
+                    <div class="sector-head"><span>第一面<small id="water-count-1" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span><span class="sector-count" id="c-zone-1">0</span></div>
+                    <div class="unit-list"></div>
                 </div>
             </div>
 
-            <div class="section-title">廠區平面圖</div>
-            <div class="card" style="text-align: center; padding: 25px 16px;">
-                <div style="font-size: 30px; margin-bottom: 5px;">🗺️</div>
-                <p style="color: var(--text-gray); font-size: 14px; font-weight: bold; margin:0;">目前尚未上傳該廠區平面圖</p>
-                <button class="btn btn-primary" style="background-color: #333; margin-top: 15px; font-size: 15px; padding: 12px;">📤 從手機上傳平面圖</button>
+            <!-- 右下角懸浮按鈕 (絕對定位於圖資頁面內) -->
+            <div class="btn-group">
+                <div class="float-btn" id="standby-btn" onclick="document.getElementById('standby-modal').style.display='block'">待命名單 (0)</div>
+                <div class="float-btn" id="evac-btn" onclick="document.getElementById('evac-modal').style.display='block'">返隊待命 (0)</div>
+                <div class="float-btn" onclick="document.getElementById('history-modal').style.display='block'">歷史紀錄</div>
             </div>
         </div>
 
         <!-- ================= 第4頁：管理指令頁 ================= -->
-        <div class="page">
+        <div class="page" style="background: var(--bg-gray);">
             <div id="task-active" style="display:none;">
                 <div class="info-box">目前執行任務：<br><b id="task-text" style="font-size: 18px;">載入中...</b></div>
                 <button class="btn btn-end" id="go-end">✅ 結束任務結案存檔</button>
@@ -255,7 +320,6 @@
                 <button class="btn btn-start" id="go-start">🚩 開始任務</button>
             </div>
 
-            <!-- 管理員名單區塊 -->
             <div class="section-title" style="margin-top: 24px;">管理人員設定</div>
             <div class="card" style="padding: 12px 16px; margin-bottom: 12px; background-color: #f9f9f9; border-left: 5px solid var(--line-green);">
                 <div style="font-size: 14px; color: var(--text-gray); font-weight: bold; margin-bottom: 8px;">👑 目前已授權管理員：</div>
@@ -266,14 +330,10 @@
 
             <div class="card">
                 <div class="form-item">
-                    <span class="form-label">選擇成員</span>
-                    <select id="admin-user-select" style="text-align: right; color: var(--line-green);">
-                        <option value="">載入名冊中...</option>
-                    </select>
+                    <span class="form-label">選擇成員</span><select id="admin-user-select" style="text-align: right; color: var(--line-green);"><option value="">載入名冊中...</option></select>
                 </div>
                 <div class="form-item">
-                    <span class="form-label">使用者 ID</span>
-                    <input type="text" id="admin-uid-input" placeholder="選擇成員自動填入" style="text-align: right; font-size: 14px; color: var(--text-gray);">
+                    <span class="form-label">使用者 ID</span><input type="text" id="admin-uid-input" placeholder="選擇成員自動填入" style="text-align: right; font-size: 14px; color: var(--text-gray);">
                 </div>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 10px;">
@@ -283,10 +343,51 @@
         </div>
     </div>
 
+    <!-- ================= 彈出視窗區 (全域覆蓋) ================= -->
+    <div id="standby-modal" class="modal">
+        <div class="modal-box" style="border-color: var(--neon-gold); max-width: 480px;">
+            <div class="modal-head" style="color: var(--neon-gold);">目前待命集結分隊</div>
+            <div id="standby-container" style="padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; overflow-y: auto; flex-grow: 1;"></div>
+            <button class="close-btn" onclick="document.getElementById('standby-modal').style.display='none'">關閉視窗</button>
+        </div>
+    </div>
+
+    <div id="evac-modal" class="modal">
+        <div class="modal-box" style="border-color: var(--evac-orange);">
+            <div class="modal-head" style="color: var(--evac-orange);">返隊待命分隊名單</div>
+            <div id="evac-container" style="padding:10px; overflow-y:auto; flex-grow: 1;"></div>
+            <button class="close-btn" onclick="document.getElementById('evac-modal').style.display='none'">關閉視窗</button>
+        </div>
+    </div>
+
+    <div id="history-modal" class="modal">
+        <div class="modal-box">
+            <div class="modal-head">歷史任務歸檔紀錄</div>
+            <div id="history-container" style="padding:10px; overflow-y:auto; flex-grow: 1;"></div>
+            <button class="close-btn" onclick="document.getElementById('history-modal').style.display='none'">關閉視窗</button>
+        </div>
+    </div>
+
+    <div id="playback-modal" class="modal">
+        <div class="modal-box">
+            <div class="modal-head" id="pb-title">戰術回放：載入中...</div>
+            <div class="tactical-grid" id="pb-grid">
+                <div class="heavy-sector zone-3" id="pb-zone-3"><div class="squad-badge" id="pb-badge-3"></div><div class="sector-head"><span>第三面<small id="pb-water-count-3" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span><span class="sector-count"></span></div><div class="unit-list"></div></div>
+                <div class="heavy-sector zone-2" id="pb-zone-2"><div class="squad-badge" id="pb-badge-2"></div><div class="sector-head"><span>第二面<small id="pb-water-count-2" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span><span class="sector-count"></span></div><div class="unit-list"></div></div>
+                <div class="heavy-sector zone-core" id="pb-zone-center"><div class="squad-badge" id="pb-badge-center"></div><div class="sector-head"><span>火場內部<small id="pb-water-count-center" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span><span class="sector-count"></span></div><div class="unit-list"></div></div>
+                <div class="heavy-sector zone-4" id="pb-zone-4"><div class="squad-badge" id="pb-badge-4"></div><div class="sector-head"><span>第四面<small id="pb-water-count-4" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span><span class="sector-count"></span></div><div class="unit-list"></div></div>
+                <div class="heavy-sector zone-1" id="pb-zone-1"><div class="squad-badge" id="pb-badge-1"></div><div class="sector-head"><span>第一面<small id="pb-water-count-1" style="font-size: 10px; color: var(--neon-blue); font-weight: bold; margin-left: 5px;"></small></span><span class="sector-count"></span></div><div class="unit-list"></div></div>
+            </div>
+            <div class="pb-evac-zone" id="pb-evac-list"></div>
+            <button class="close-btn" onclick="document.getElementById('playback-modal').style.display='none'">關閉回放視窗</button>
+        </div>
+    </div>
+
+    <!-- 腳本區塊 -->
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, collection, query, where, setDoc, deleteDoc, serverTimestamp, getDoc, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, collection, query, where, setDoc, deleteDoc, serverTimestamp, getDoc, getDocs, addDoc, limit, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = { 
@@ -302,12 +403,17 @@
         const storage = getStorage(app);
 
         let userName = "未知人員"; 
+        let toastTimeout;
 
         function showToast(msg) {
             const t = document.getElementById('toast');
-            t.innerText = msg; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2500);
+            t.innerHTML = msg; t.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => t.classList.remove('show'), 2500);
         }
+        window.showReporter = function(name, team) {
+            showToast(`<span style="color:var(--neon-gold)">${team}</span> 👤登記人：${name}`);
+        };
 
         const fireData = {
             "第一大隊": ["板橋", "新板", "海山", "莒光", "溪崑", "民生"],
@@ -350,14 +456,7 @@
                 else { customInput.style.display = 'none'; }
             });
             setupRadioGroup('w-group');
-            
-            // 🌟 圖資分頁：圖層切換按鈕效果設定
-            setupRadioGroup('map-layer-group', (val) => {
-                showToast("切換圖層中...");
-                // 這裡未來可以介接 GIS API 來更換圖層
-            });
 
-            // 拍照按鈕邏輯
             document.getElementById('btn-camera').onclick = () => document.getElementById('photo-input').click();
             document.getElementById('photo-input').onchange = (e) => {
                 const file = e.target.files[0];
@@ -454,7 +553,16 @@
         let isProcessing = false; 
         let hasActiveTask = false;
 
-        // 監聽任務狀態 (更新地圖資訊與解鎖防呆)
+        // ================= 戰術圖資看板 時間更新 =================
+        setInterval(() => {
+            const now = new Date();
+            const y = now.getFullYear(); const m = String(now.getMonth() + 1).padStart(2, '0'); const d = String(now.getDate()).padStart(2, '0');
+            const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+            document.getElementById('live-date').innerText = `${y}-${m}-${d} (${weekdays[now.getDay()]})`;
+            document.getElementById('live-clock').innerText = now.toLocaleTimeString('zh-TW', { hour12: false });
+        }, 1000);
+
+        // ================= 監聽任務狀態 =================
         onSnapshot(doc(db, "system_state", "current_task"), (snap) => {
             if (isProcessing) return; 
 
@@ -462,12 +570,14 @@
             const nw = document.getElementById('task-new');
             const btnDeploy = document.getElementById('go-deploy'); 
             const btnLeave = document.getElementById('go-leave');   
-            const mapAddress = document.getElementById('map-address'); // 🌟 圖資頁連動地址
 
             if (snap.exists()) {
                 hasActiveTask = true; 
                 document.getElementById('task-text').innerText = `${snap.data().type} / ${snap.data().address}`;
-                if(mapAddress) mapAddress.innerText = `📍 目前任務地點：${snap.data().address}`; // 更新圖資地址
+                
+                // 更新戰術看板標題
+                document.getElementById('task-type').innerText = snap.data().type;
+                document.getElementById('task-address').innerText = snap.data().address;
                 
                 active.style.display = 'block'; nw.style.display = 'none';
                 btnDeploy.disabled = false; btnDeploy.innerText = "確認部署回報"; btnDeploy.style.opacity = "1";
@@ -476,16 +586,190 @@
                 if (isFirstLoad) { setTimeout(() => switchTab(0), 400); isFirstLoad = false; }
             } else {
                 hasActiveTask = false; 
-                if(mapAddress) mapAddress.innerText = `📍 目前無任務，圖資待命中`; // 清除圖資地址
+                document.getElementById('task-type').innerText = "系統待命中";
+                document.getElementById('task-address').innerText = "等待派遣指令...";
+
                 active.style.display = 'none'; nw.style.display = 'block';
-                
                 btnDeploy.disabled = true; btnDeploy.innerText = "🚫 系統待命中 (請先開啟任務)"; btnDeploy.style.opacity = "0.5";
                 btnLeave.disabled = true; btnLeave.innerText = "🚫 系統待命中 (請先開啟任務)"; btnLeave.style.opacity = "0.5";
 
-                // 🌟 因為多了一頁，無任務時導向第 4 頁 (index 3)
                 if (isFirstLoad) { setTimeout(() => switchTab(3), 400); isFirstLoad = false; }
             }
         });
+
+        // ================= 解析戰術看版的水線與卡片生成 =================
+        function extractWaterLines(data) {
+            if (!data) return 0;
+            let allText = Object.values(data).filter(val => typeof val === 'string' || typeof val === 'number').join(" ");
+            if (!allText.trim()) return 0;
+            
+            let s = allText.replace(/['"]/g, '').replace(/１/g, '1').replace(/２/g, '2').replace(/３/g, '3').replace(/４/g, '4').replace(/５/g, '5').replace(/６/g, '6').replace(/一/g, '1').replace(/二/g, '2').replace(/兩/g, '2').replace(/三/g, '3').replace(/四/g, '4').replace(/五/g, '5');
+            let match = s.match(/(\d+)\s*(?:條|股|線)?\s*水線/); 
+            if (match) return parseInt(match[1]);
+            match = s.match(/水線\s*[xX*]?\s*(\d+)/); 
+            if (match) return parseInt(match[1]);
+            if (s.includes("水線") && !s.includes("0條") && !s.includes("0水線") && !s.includes("水線0")) return 1; 
+            return 0;
+        }
+
+        function createCardHtml(data) {
+            let pStr = String(data.people || "0").replace(/['"人]/g, "") + "人";
+            const side = data.side || "";
+            let taskStr = (data.task || "未指派").replace(/['"]/g, "");
+            const wLines = extractWaterLines(data); 
+            
+            if (wLines > 0 && !taskStr.includes("水線")) taskStr += ` <span style="color: var(--neon-blue); font-weight: 900;">(💧${wLines}線)</span>`;
+            else if (wLines > 0) taskStr = taskStr.replace(/(\d+\s*(?:條|股|線)?\s*水線|水線\s*[xX*]?\s*\d+|水線)/g, '<span style="color: var(--neon-blue); font-weight: 900;">$&</span>');
+
+            let time = "--:--";
+            if (data.updateTime && data.updateTime.toDate) time = data.updateTime.toDate().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+            else if (data.updateTime && typeof data.updateTime === 'string') time = data.updateTime.substring(11, 16);
+
+            let displayName = (data.team || "").replace(/['"]/g, "");
+            const leaderStr = (data.leader || data.captain || "").replace(/['"]/g, "");
+            if (leaderStr) displayName = displayName.replace("分隊", "") + leaderStr;
+
+            const reporter = (data.reportedBy && data.reportedBy.name) ? data.reportedBy.name : "未知";
+            let plateClass = "unit-plate"; 
+            if (taskStr.includes("待命") || side.includes("集結") || side.includes("外部")) plateClass += " plate-standby";
+
+            return `
+                <div class="${plateClass}" onclick="showReporter('${reporter}', '${data.team}')">
+                    <div class="plate-row"><span class="unit-name">${displayName}</span><span class="unit-pax">${pStr}</span></div>
+                    <div class="plate-row"><span class="unit-task">${taskStr}</span><span class="unit-time">${time}</span></div>
+                </div>`;
+        }
+
+        function getTargetZone(side) {
+            if (!side) return '1';
+            if (side.includes("內部") || side.includes("頂樓") || side.includes("火場")) return 'center';
+            if (side.includes("2") || side.includes("二")) return '2';
+            if (side.includes("3") || side.includes("三")) return '3';
+            if (side.includes("4") || side.includes("四")) return '4';
+            if (side.includes("集結") || side.includes("外部") || side.includes("待命")) return 'standby';
+            return '1';
+        }
+
+        // ================= 戰術看板：即時兵力部署 =================
+        onSnapshot(collection(db, "fire_deployments"), (snap) => {
+            const counts = { '1':0, '2':0, '3':0, '4':0, 'center':0, 'standby':0 };
+            const squadCounts = { '1':0, '2':0, '3':0, '4':0, 'center':0, 'standby':0 }; 
+            const waterCounts = { '1':0, '2':0, '3':0, '4':0, 'center':0, 'standby':0 }; 
+            let standbyCount = 0;
+            
+            document.querySelectorAll('#main-grid .unit-list').forEach(el => el.innerHTML = "");
+            const standbyContainer = document.getElementById('standby-container');
+            if (standbyContainer) standbyContainer.innerHTML = "";
+
+            snap.forEach(d => {
+                const data = d.data();
+                const target = getTargetZone(data.side || "");
+                const pNum = parseInt(String(data.people || "0").replace(/[^0-9]/g, '')) || 0;
+                const wLines = extractWaterLines(data); 
+                
+                if (target === 'standby') {
+                    standbyCount++;
+                    if (standbyContainer) standbyContainer.insertAdjacentHTML('beforeend', createCardHtml(data));
+                } else {
+                    const listEl = document.querySelector(`#zone-${target} .unit-list`);
+                    if (listEl) listEl.insertAdjacentHTML('beforeend', createCardHtml(data));
+                    counts[target] += pNum; squadCounts[target]++; waterCounts[target] += wLines; 
+                }
+            });
+            
+            document.getElementById('grand-total').innerText = counts['1'] + counts['2'] + counts['3'] + counts['4'] + counts['center'];
+            
+            for(let k in counts) {
+                const countEl = document.getElementById(`c-zone-${k}`);
+                if (countEl) countEl.innerText = counts[k];
+
+                const badgeEl = document.getElementById(`badge-${k}`);
+                if (badgeEl) {
+                    if (squadCounts[k] > 0) { badgeEl.innerText = `${squadCounts[k]}隊`; badgeEl.style.display = 'block'; } 
+                    else { badgeEl.style.display = 'none'; }
+                }
+
+                const waterCountEl = document.getElementById(`water-count-${k}`);
+                if (waterCountEl) waterCountEl.innerText = waterCounts[k] > 0 ? `💧${waterCounts[k]}水線` : '';
+            }
+            
+            const standbyBtn = document.getElementById('standby-btn');
+            if (standbyBtn) standbyBtn.innerText = `待命名單 (${standbyCount})`;
+            if (standbyCount === 0 && standbyContainer) {
+                standbyContainer.innerHTML = '<div style="color: #888; font-size: 13px; text-align: center; width:100%; grid-column: span 2; padding: 20px;">目前無待命分隊</div>';
+            }
+        });
+
+        // ================= 戰術看板：返隊待命與歷史 =================
+        onSnapshot(collection(db, "fire_evacuations"), (snap) => {
+            const container = document.getElementById('evac-container');
+            const btn = document.getElementById('evac-btn');
+            container.innerHTML = ""; let evacCount = 0;
+            snap.forEach(d => {
+                evacCount++; const data = d.data();
+                const time = data.evacTime ? data.evacTime.toDate().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }) : "--:--";
+                const evacBy = (data.evacBy && data.evacBy.name) ? data.evacBy.name : "未知";
+                container.innerHTML += `<div class="log-item" style="border-left: 3px solid var(--evac-orange); padding-left: 8px;"><span><b style="color:#fff;">${data.team}</b> (${data.people})</span><span style="font-size: 11px; color: #888;">👤${evacBy} | 返隊於 ${time}</span></div>`;
+            });
+            btn.innerText = `返隊待命 (${evacCount})`;
+            if (evacCount === 0) container.innerHTML = "目前無返隊待命分隊";
+        });
+
+        onSnapshot(query(collection(db, "history_logs"), orderBy("endTime", "desc"), limit(10)), (snap) => {
+            const container = document.getElementById('history-container');
+            container.innerHTML = "";
+            snap.forEach(d => {
+                const data = d.data();
+                const div = document.createElement('div');
+                div.className = 'log-item';
+                div.innerHTML = `<span><b>${data.type}</b> - ${data.address}</span> <span style="color:var(--neon-blue); font-size:11px;">▶ 戰術回放</span>`;
+                
+                div.onclick = async () => {
+                    document.getElementById('pb-title').innerText = `[結案回放] ${data.type} | ${data.address}`;
+                    document.querySelectorAll('#pb-grid .unit-list').forEach(el => el.innerHTML = "");
+                    
+                    const pbCounts = { '1':0, '2':0, '3':0, '4':0, 'center':0 };
+                    const pbSquadCounts = { '1':0, '2':0, '3':0, '4':0, 'center':0 };
+                    const pbWaterCounts = { '1':0, '2':0, '3':0, '4':0, 'center':0 }; 
+
+                    if(data.deployments && data.deployments.length > 0) {
+                        let pbStandbyHtml = [];
+                        data.deployments.forEach(unit => {
+                            const target = getTargetZone(unit.side || "");
+                            const wLines = extractWaterLines(unit); 
+
+                            if (target === 'standby') {
+                                pbStandbyHtml.push(`<span style="display: inline-block; background: #222; border: 1px solid var(--neon-gold); color: var(--neon-gold); padding: 4px 8px; border-radius: 4px; font-size: 11px; margin: 2px;">🟡 ${unit.team} (${unit.people}) - 待命</span>`);
+                            } else {
+                                const pbListEl = document.querySelector(`#pb-zone-${target} .unit-list`);
+                                if (pbListEl) pbListEl.insertAdjacentHTML('beforeend', createCardHtml(unit));
+                                const pNum = parseInt(String(unit.people || "0").replace(/[^0-9]/g, '')) || 0;
+                                pbCounts[target] += pNum; pbSquadCounts[target]++; pbWaterCounts[target] += wLines; 
+                            }
+                        });
+                        document.getElementById('pb-evac-list').innerHTML = pbStandbyHtml.join("") || `<span style="color:#888; font-size:11px;">(無待命資料)</span>`;
+                    }
+                    
+                    for(let k in pbCounts) {
+                        const countEl = document.querySelector(`#pb-zone-${k} .sector-count`);
+                        if (countEl) countEl.innerText = pbCounts[k];
+                        const pbBadgeEl = document.getElementById(`pb-badge-${k}`);
+                        if (pbBadgeEl) {
+                            if (pbSquadCounts[k] > 0) { pbBadgeEl.innerText = `${pbSquadCounts[k]}隊`; pbBadgeEl.style.display = 'block'; } 
+                            else { pbBadgeEl.style.display = 'none'; }
+                        }
+                        const waterCountEl = document.getElementById(`pb-water-count-${k}`);
+                        if (waterCountEl) waterCountEl.innerText = pbWaterCounts[k] > 0 ? `💧${pbWaterCounts[k]}水線` : '';
+                    }
+
+                    document.getElementById('history-modal').style.display = 'none';
+                    document.getElementById('playback-modal').style.display = 'block';
+                };
+                container.appendChild(div);
+            });
+            if(snap.empty) container.innerHTML = "目前尚無結案紀錄";
+        });
+
 
         // 初始化 LIFF
         liff.init({ liffId: "2010239154-mvwJXGM7" }).then(() => { 
@@ -495,10 +779,7 @@
                 liff.getProfile().then(async (profile) => { 
                     userName = profile.displayName; 
                     try {
-                        await setDoc(doc(db, "line_users", profile.userId), {
-                            userId: profile.userId, name: profile.displayName,
-                            status: "active", lastLogin: serverTimestamp()
-                        }, { merge: true });
+                        await setDoc(doc(db, "line_users", profile.userId), { userId: profile.userId, name: profile.displayName, status: "active", lastLogin: serverTimestamp() }, { merge: true });
                     } catch (error) { console.error(error); }
                 }).catch(err => console.error(err));
                 initUI(); 
@@ -514,10 +795,9 @@
             btns.forEach((b, i) => b.classList.toggle('active', i === idx));
         };
 
-        // 🚀 部署回報
+        // ================= 核心操作邏輯 =================
         document.getElementById('go-deploy').onclick = async () => {
             if (!hasActiveTask) return showToast("⚠️ 請先至管理頁面開啟新任務！"); 
-
             const btn = document.getElementById('go-deploy');
             btn.disabled = true; btn.innerText = "⏳ 上傳資料中...";
             isProcessing = true; 
@@ -530,7 +810,6 @@
             const side = document.getElementById('side-in').value;
             const task = document.getElementById('task-in').value;
             const pCountVal = getPCount(); const wCountVal = getWCount();
-            
             let imageUrl = null;
 
             try {
@@ -554,59 +833,34 @@
                     type: "flex", altText: `🚨 ${t} 部署回報`,
                     contents: {
                         type: "bubble", size: "kilo",
-                        header: {
-                            type: "box", layout: "vertical", backgroundColor: "#d90429",
-                            contents: [{ type: "text", text: "🚨 戰術部署回報", weight: "bold", color: "#ffffff", size: "md" }]
-                        },
+                        header: { type: "box", layout: "vertical", backgroundColor: "#d90429", contents: [{ type: "text", text: "🚨 戰術部署回報", weight: "bold", color: "#ffffff", size: "md" }] },
                         body: {
                             type: "box", layout: "vertical", spacing: "md",
                             contents: [
-                                { type: "box", layout: "horizontal", contents: [
-                                    { type: "text", text: "進出單位", color: "#888888", size: "sm", flex: 2 },
-                                    { type: "text", text: `${t} (${leader})`, weight: "bold", size: "sm", color: "#111111", flex: 5 }
-                                ]},
-                                { type: "box", layout: "horizontal", contents: [
-                                    { type: "text", text: "指派任務", color: "#888888", size: "sm", flex: 2 },
-                                    { type: "text", text: `${side} / ${task}`, weight: "bold", size: "sm", color: "#e63946", flex: 5 }
-                                ]},
-                                { type: "box", layout: "horizontal", contents: [
-                                    { type: "text", text: "投入兵力", color: "#888888", size: "sm", flex: 2 },
-                                    { type: "text", text: `${pCountVal}人 / ${wCountVal}水線`, weight: "bold", size: "sm", color: "#023e8a", flex: 5 }
-                                ]}
+                                { type: "box", layout: "horizontal", contents: [{ type: "text", text: "進出單位", color: "#888888", size: "sm", flex: 2 }, { type: "text", text: `${t} (${leader})`, weight: "bold", size: "sm", color: "#111111", flex: 5 }]},
+                                { type: "box", layout: "horizontal", contents: [{ type: "text", text: "指派任務", color: "#888888", size: "sm", flex: 2 }, { type: "text", text: `${side} / ${task}`, weight: "bold", size: "sm", color: "#e63946", flex: 5 }]},
+                                { type: "box", layout: "horizontal", contents: [{ type: "text", text: "投入兵力", color: "#888888", size: "sm", flex: 2 }, { type: "text", text: `${pCountVal}人 / ${wCountVal}水線`, weight: "bold", size: "sm", color: "#023e8a", flex: 5 }]}
                             ]
                         }
                     }
                 };
 
                 if (imageUrl) {
-                    flexMsg.contents.hero = {
-                        type: "image", url: imageUrl, size: "full", aspectRatio: "20:13", aspectMode: "cover",
-                        action: { type: "uri", uri: imageUrl }
-                    };
+                    flexMsg.contents.hero = { type: "image", url: imageUrl, size: "full", aspectRatio: "20:13", aspectMode: "cover", action: { type: "uri", uri: imageUrl } };
                 }
 
                 if(liff.isInClient()) {
-                    liff.sendMessages([flexMsg]).then(() => {
-                        showToast("🚀 任務圖卡已送出！");
-                        setTimeout(() => liff.closeWindow(), 1000);
-                    });
-                } else {
-                    showToast("測試環境：資料已更新");
-                    btn.innerText = "完成";
-                    isProcessing = false;
-                }
+                    liff.sendMessages([flexMsg]).then(() => { showToast("🚀 任務圖卡已送出！"); setTimeout(() => liff.closeWindow(), 1000); });
+                } else { showToast("測試環境：資料已更新"); btn.innerText = "完成"; isProcessing = false; }
                 
             } catch (error) { 
                 showToast("❌ 上傳失敗，請檢查權限"); 
-                btn.disabled = false; btn.innerText = "確認部署回報";
-                isProcessing = false;
+                btn.disabled = false; btn.innerText = "確認部署回報"; isProcessing = false;
             }
         };
 
-        // 🚪 返隊
         document.getElementById('go-leave').onclick = async () => {
             if (!hasActiveTask) return showToast("⚠️ 請先至管理頁面開啟新任務！"); 
-
             const t = document.getElementById('lv-t').value;
             isProcessing = true; 
             try {
@@ -616,7 +870,6 @@
             } catch (error) { showToast("❌ 處理失敗"); isProcessing = false; }
         };
 
-       // 🚩 開始新任務
         document.getElementById('go-start').onclick = async () => {
             const t = document.getElementById('t-type').value;
             const a = document.getElementById('t-addr').value;
@@ -624,59 +877,37 @@
             if(t && a) {
                 try {
                     await setDoc(doc(db, "system_state", "current_task"), { type: t, address: a, startTime: serverTimestamp() });
-                    
                     const flexMsg = {
                         type: "flex", altText: `🚨 任務啟動：${t}`,
                         contents: {
                             type: "bubble", size: "kilo",
-                            header: {
-                                type: "box", layout: "vertical", backgroundColor: "#ff5b5b", 
-                                contents: [{ type: "text", text: "🚨 任務啟動通知", weight: "bold", color: "#ffffff", size: "md" }]
-                            },
+                            header: { type: "box", layout: "vertical", backgroundColor: "#ff5b5b", contents: [{ type: "text", text: "🚨 任務啟動通知", weight: "bold", color: "#ffffff", size: "md" }] },
                             body: {
                                 type: "box", layout: "vertical", spacing: "md",
                                 contents: [
-                                    { type: "box", layout: "horizontal", contents: [
-                                        { type: "text", text: "任務類型", color: "#888888", size: "sm", flex: 2 },
-                                        { type: "text", text: t, weight: "bold", size: "sm", color: "#111111", flex: 5 }
-                                    ]},
-                                    { type: "box", layout: "horizontal", contents: [
-                                        { type: "text", text: "發生地點", color: "#888888", size: "sm", flex: 2 },
-                                        { type: "text", text: a, weight: "bold", size: "sm", color: "#e63946", flex: 5 }
-                                    ]},
-                                    { type: "box", layout: "horizontal", margin: "md", contents: [
-                                        { type: "text", text: "📌 指揮系統看板已上線，請各單位確實回報部署。", color: "#aaaaaa", size: "xs", wrap: true }
-                                    ]}
+                                    { type: "box", layout: "horizontal", contents: [{ type: "text", text: "任務類型", color: "#888888", size: "sm", flex: 2 }, { type: "text", text: t, weight: "bold", size: "sm", color: "#111111", flex: 5 }]},
+                                    { type: "box", layout: "horizontal", contents: [{ type: "text", text: "發生地點", color: "#888888", size: "sm", flex: 2 }, { type: "text", text: a, weight: "bold", size: "sm", color: "#e63946", flex: 5 }]},
+                                    { type: "box", layout: "horizontal", margin: "md", contents: [{ type: "text", text: "📌 指揮系統看板已上線，請各單位確實回報部署。", color: "#aaaaaa", size: "xs", wrap: true }]}
                                 ]
                             }
                         }
                     };
 
                     if(liff.isInClient()) {
-                        liff.sendMessages([flexMsg]).then(() => {
-                            showToast("🚩 任務已開啟並發送通知");
-                            setTimeout(() => liff.closeWindow(), 1000);
-                        });
+                        liff.sendMessages([flexMsg]).then(() => { showToast("🚩 任務已開啟並發送通知"); setTimeout(() => liff.closeWindow(), 1000); });
                     } else { showToast("測試環境：任務已開啟"); }
 
                 } catch (error) { showToast("❌ 啟動任務失敗，請檢查權限"); }
-            } else {
-                showToast("⚠️ 請填寫完整資訊");
-            }
+            } else { showToast("⚠️ 請填寫完整資訊"); }
         };
 
-        // ✅ 結束任務
         document.getElementById('go-end').onclick = async () => {
             const btn = document.getElementById('go-end');
             btn.disabled = true; btn.innerText = "⏳ 結案歸檔清空中...";
 
             try {
                 const taskSnap = await getDoc(doc(db, "system_state", "current_task"));
-                if (!taskSnap.exists()) {
-                    showToast("目前沒有任務");
-                    btn.disabled = false; btn.innerText = "✅ 結束任務結案存檔";
-                    return;
-                }
+                if (!taskSnap.exists()) { showToast("目前沒有任務"); btn.disabled = false; btn.innerText = "✅ 結束任務結案存檔"; return; }
                 const taskData = taskSnap.data();
 
                 const depSnap = await getDocs(collection(db, "fire_deployments"));
@@ -686,82 +917,46 @@
                 const evacSnap = await getDocs(collection(db, "fire_evacuations"));
                 evacSnap.forEach(d => deleteDoc(doc(db, "fire_evacuations", d.id)));
 
-                await addDoc(collection(db, "history_logs"), {
-                    type: taskData.type, address: taskData.address,
-                    startTime: taskData.startTime, endTime: serverTimestamp(),
-                    deployments: deployments 
-                });
-
+                await addDoc(collection(db, "history_logs"), { type: taskData.type, address: taskData.address, startTime: taskData.startTime, endTime: serverTimestamp(), deployments: deployments });
                 await deleteDoc(doc(db, "system_state", "current_task"));
 
                 const flexMsg = {
                     type: "flex", altText: `✅ 任務結案：${taskData.type}`,
                     contents: {
                         type: "bubble", size: "kilo",
-                        header: {
-                            type: "box", layout: "vertical", backgroundColor: "#28a745", 
-                            contents: [{ type: "text", text: "✅ 任務結案歸檔", weight: "bold", color: "#ffffff", size: "md" }]
-                        },
+                        header: { type: "box", layout: "vertical", backgroundColor: "#28a745", contents: [{ type: "text", text: "✅ 任務結案歸檔", weight: "bold", color: "#ffffff", size: "md" }] },
                         body: {
                             type: "box", layout: "vertical", spacing: "md",
                             contents: [
-                                { type: "box", layout: "horizontal", contents: [
-                                    { type: "text", text: "任務類型", color: "#888888", size: "sm", flex: 2 },
-                                    { type: "text", text: taskData.type, weight: "bold", size: "sm", color: "#111111", flex: 5 }
-                                ]},
-                                { type: "box", layout: "horizontal", contents: [
-                                    { type: "text", text: "執行地點", color: "#888888", size: "sm", flex: 2 },
-                                    { type: "text", text: taskData.address, weight: "bold", size: "sm", color: "#111111", flex: 5 }
-                                ]},
-                                { type: "box", layout: "horizontal", margin: "md", contents: [
-                                    { type: "text", text: "📌 大螢幕看板已清空，戰術資料已封存至歷史紀錄。", color: "#aaaaaa", size: "xs", wrap: true }
-                                ]}
+                                { type: "box", layout: "horizontal", contents: [{ type: "text", text: "任務類型", color: "#888888", size: "sm", flex: 2 }, { type: "text", text: taskData.type, weight: "bold", size: "sm", color: "#111111", flex: 5 }]},
+                                { type: "box", layout: "horizontal", contents: [{ type: "text", text: "執行地點", color: "#888888", size: "sm", flex: 2 }, { type: "text", text: taskData.address, weight: "bold", size: "sm", color: "#111111", flex: 5 }]},
+                                { type: "box", layout: "horizontal", margin: "md", contents: [{ type: "text", text: "📌 大螢幕看板已清空，戰術資料已封存至歷史紀錄。", color: "#aaaaaa", size: "xs", wrap: true }]}
                             ]
                         }
                     }
                 };
 
                 if(liff.isInClient()) {
-                    liff.sendMessages([flexMsg]).then(() => {
-                        showToast("✅ 已歸檔並發送通知");
-                        setTimeout(() => liff.closeWindow(), 1500);
-                    });
-                } else { 
-                    showToast("測試環境：已歸檔並清空"); 
-                    btn.innerText = "完成"; 
-                }
+                    liff.sendMessages([flexMsg]).then(() => { showToast("✅ 已歸檔並發送通知"); setTimeout(() => liff.closeWindow(), 1500); });
+                } else { showToast("測試環境：已歸檔並清空"); btn.innerText = "完成"; }
 
-            } catch (error) { 
-                showToast("❌ 結案失敗，請檢查網路"); 
-                console.error(error);
-                btn.disabled = false; btn.innerText = "✅ 結束任務結案存檔";
-            }
+            } catch (error) { showToast("❌ 結案失敗，請檢查網路"); console.error(error); btn.disabled = false; btn.innerText = "✅ 結束任務結案存檔"; }
         };
 
         document.getElementById('go-add-admin').onclick = async () => {
             const uid = uidInput.value.trim();
             if (!uid || !uid.startsWith("U") || uid.length !== 33) return showToast("⚠️ 請選擇成員");
-            try {
-                await setDoc(doc(db, "authorized_admins", uid), { addedBy: userName, addTime: serverTimestamp() });
-                showToast("✅ 已成功授權為管理員");
-            } catch (error) { showToast("❌ 授權失敗"); }
+            try { await setDoc(doc(db, "authorized_admins", uid), { addedBy: userName, addTime: serverTimestamp() }); showToast("✅ 已成功授權為管理員"); } catch (error) { showToast("❌ 授權失敗"); }
         };
 
         document.getElementById('go-remove-admin').onclick = async () => {
             const uid = uidInput.value.trim();
             if (!uid || !uid.startsWith("U") || uid.length !== 33) return showToast("⚠️ 請選擇成員");
-            try {
-                await deleteDoc(doc(db, "authorized_admins", uid));
-                showToast("🚪 已移除該員管理權限");
-            } catch (error) { showToast("❌ 移除失敗"); }
+            try { await deleteDoc(doc(db, "authorized_admins", uid)); showToast("🚪 已移除該員管理權限"); } catch (error) { showToast("❌ 移除失敗"); }
         };
 
         function send(txt, successMsg) {
-            if(liff.isInClient()) {
-                liff.sendMessages([{type:'text', text:txt}]).then(() => {
-                    showToast(successMsg);
-                    setTimeout(() => liff.closeWindow(), 1000);
-                });
+            if(liff.isInClient()) { liff.sendMessages([{type:'text', text:txt}]).then(() => { showToast(successMsg); setTimeout(() => liff.closeWindow(), 1000); });
             } else { showToast("測試環境無法送出"); console.log("即將送出: ", txt); }
         }
     </script>
