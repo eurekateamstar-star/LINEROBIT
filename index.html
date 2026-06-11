@@ -436,7 +436,7 @@
             btns.forEach((b, i) => b.classList.toggle('active', i === idx));
         };
 
-        // --- 核心按鈕動作 ---
+       // 🚀 核心一：確認部署回報 (寫入 Firebase + 傳送超美圖卡到 LINE)
         document.getElementById('go-deploy').onclick = async () => {
             const b = document.getElementById('dep-b').value;
             const t = document.getElementById('dep-t').value;
@@ -454,9 +454,54 @@
             };
 
             try {
+                // 1. 直達大螢幕：寫入 Firebase
                 await setDoc(doc(db, "fire_deployments", t), deploymentData);
-                send(`${t}.${leader}.${pCountVal}人.${side}.${task}.${wCountVal}條水線`, "🚀 資訊已更新至大螢幕");
-            } catch (error) { showToast("❌ 寫入失敗，請檢查權限"); }
+                
+                // 2. 準備 LINE 的 Flex Message 圖卡格式
+                const flexMsg = {
+                    type: "flex",
+                    altText: `🚨 ${t} 部署回報`, // 手機推播通知顯示的文字
+                    contents: {
+                        type: "bubble",
+                        size: "kilo",
+                        header: {
+                            type: "box", layout: "vertical", backgroundColor: "#d90429", // 消防紅底色
+                            contents: [{ type: "text", text: "🚨 戰術部署回報", weight: "bold", color: "#ffffff", size: "md" }]
+                        },
+                        body: {
+                            type: "box", layout: "vertical", spacing: "md",
+                            contents: [
+                                { type: "box", layout: "horizontal", contents: [
+                                    { type: "text", text: "進出單位", color: "#888888", size: "sm", flex: 2 },
+                                    { type: "text", text: `${t} (${leader})`, weight: "bold", size: "sm", color: "#111111", flex: 5 }
+                                ]},
+                                { type: "box", layout: "horizontal", contents: [
+                                    { type: "text", text: "指派任務", color: "#888888", size: "sm", flex: 2 },
+                                    { type: "text", text: `${side} / ${task}`, weight: "bold", size: "sm", color: "#e63946", flex: 5 }
+                                ]},
+                                { type: "box", layout: "horizontal", contents: [
+                                    { type: "text", text: "投入兵力", color: "#888888", size: "sm", flex: 2 },
+                                    { type: "text", text: `${pCountVal}人 / ${wCountVal}水線`, weight: "bold", size: "sm", color: "#023e8a", flex: 5 }
+                                ]}
+                            ]
+                        }
+                    }
+                };
+
+                // 3. 發送圖卡到 LINE 群組
+                if(liff.isInClient()) {
+                    liff.sendMessages([flexMsg]).then(() => {
+                        showToast("🚀 圖卡已傳送，大螢幕已更新");
+                        setTimeout(() => liff.closeWindow(), 1000);
+                    });
+                } else {
+                    showToast("測試環境無法送出圖卡");
+                }
+                
+            } catch (error) { 
+                showToast("❌ 寫入失敗，請檢查權限"); 
+                console.error(error);
+            }
         };
 
         document.getElementById('go-leave').onclick = async () => {
