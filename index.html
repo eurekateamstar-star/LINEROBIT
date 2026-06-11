@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>工廠火災安全管理小幫手</title>
+    <title>🚒 工廠火災安全管理小幫手</title>
     
     <!-- 👇👇 加入這段讓 LINE 網址變成圖卡 👇👇 -->
     <meta property="og:title" content="🚒 工廠火災安全管理小幫手">
@@ -353,6 +353,16 @@
             </div>
             <!-- 容器結束 -->
 
+            <!-- 👇 加入這段分享按鈕 👇 -->
+            <div class="section-title" style="margin-top: 24px;">系統分享與邀請</div>
+            <div class="card" style="background: transparent; box-shadow: none; padding: 0;">
+                <button class="btn" id="btn-share-system" style="background-color: #023e8a; color: #fff; margin-top: 0;">📢 發送系統圖文小卡到群組</button>
+            </div>
+            <!-- 👆 加入這段分享按鈕 👆 -->
+
+        </div>
+    </div>
+            
     <!-- ================= 彈出視窗區 (全域覆蓋) ================= -->
     <div id="standby-modal" class="modal">
         <div class="modal-box" style="border-color: var(--neon-gold); max-width: 480px;">
@@ -1099,7 +1109,70 @@
             if (!uid || !uid.startsWith("U") || uid.length !== 33) return showToast("⚠️ 請選擇成員");
             try { await deleteDoc(doc(db, "authorized_admins", uid)); showToast("🚪 已移除該員管理權限"); } catch (error) { showToast("❌ 移除失敗"); }
         };
+// 👇 加入這段發送圖文小卡的程式碼 👇
+        document.getElementById('btn-share-system').onclick = async () => {
+            // 檢查開發者後台是否有開啟 Share Target Picker
+            if (!liff.isApiAvailable('shareTargetPicker')) {
+                return showToast("⚠️ 請先至 LINE 開發者後台開啟 Share Target Picker 功能！");
+            }
 
+            try {
+                // 這裡設計你的圖文小卡
+                const flexMessage = {
+                    type: "flex",
+                    altText: "🚒 工廠火災安全管理小幫手",
+                    contents: {
+                        type: "bubble",
+                        hero: {
+                            type: "image",
+                            url: "https://images.unsplash.com/photo-1583524505974-6facd53f4597?auto=format&fit=crop&w=800&q=80", // 預設的消防車背景圖，可自行替換
+                            size: "full",
+                            aspectRatio: "20:13",
+                            aspectMode: "cover"
+                        },
+                        body: {
+                            type: "box",
+                            layout: "vertical",
+                            contents: [
+                                { type: "text", text: "🚒 工廠火災安全管理小幫手", weight: "bold", size: "xl", color: "#111111" },
+                                { type: "text", text: "點擊下方按鈕進入系統，進行兵力部署回報與撤離管制。", size: "sm", color: "#888888", wrap: true, margin: "md" }
+                            ]
+                        },
+                        footer: {
+                            type: "box",
+                            layout: "vertical",
+                            spacing: "sm",
+                            contents: [
+                                {
+                                    type: "button",
+                                    style: "primary",
+                                    height: "sm",
+                                    color: "#d90429", // 消防紅按鈕
+                                    action: {
+                                        type: "uri",
+                                        label": "🚀 點此開啟系統看板",
+                                        // ⚠️⚠️⚠️ 注意：下面這裡一定要換成你自己的 LIFF 網址 ⚠️⚠️⚠️
+                                        uri: "https://liff.line.me/2010239154-mvwJXGM7" 
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                };
+
+                // 喚起選擇群組的畫面
+                const res = await liff.shareTargetPicker([flexMessage]);
+                if (res) {
+                    showToast("✅ 圖文小卡已成功發送至群組！");
+                } else {
+                    showToast("已取消發送");
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("❌ 發送失敗，請檢查權限設定");
+            }
+        };
+        // 👆 加入這段發送圖文小卡的程式碼 👆
         function send(txt, successMsg) {
             if(liff.isInClient()) { liff.sendMessages([{type:'text', text:txt}]).then(() => { showToast(successMsg); setTimeout(() => liff.closeWindow(), 1000); });
             } else { showToast("測試環境無法送出"); console.log("即將送出: ", txt); }
