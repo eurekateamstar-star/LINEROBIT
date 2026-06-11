@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -9,7 +8,7 @@
         :root {
             --line-green: #06C755; --bg-gray: #F4F4F4; --border-color: #EBEBEB;
             --text-dark: #111111; --text-gray: #888888; --emergency-red: #FF5B5B;
-            --warning-orange: #fd7e14;
+            --warning-orange: #fd7e14; --map-blue: #007AFF;
         }
 
         body { 
@@ -18,9 +17,9 @@
             color: var(--text-dark); height: 100vh; width: 100vw; overflow: hidden;
         }
 
-        /* 導航列 */
+        /* 導航列 (修改為可容納4個Tab) */
         .nav-tabs { display: flex; background: #ffffff; position: fixed; top: 0; width: 100%; z-index: 999; border-bottom: 1px solid var(--border-color); }
-        .tab-btn { flex: 1; padding: 15px 0; text-align: center; font-size: 15px; color: var(--text-gray); position: relative; cursor: pointer; }
+        .tab-btn { flex: 1; padding: 15px 0; text-align: center; font-size: 14px; color: var(--text-gray); position: relative; cursor: pointer; white-space: nowrap;}
         .tab-btn.active { color: var(--line-green); font-weight: bold; }
         .tab-btn.active::after { content: ""; position: absolute; bottom: 0; left: 20%; width: 60%; height: 3px; background-color: var(--line-green); border-radius: 3px; }
 
@@ -59,9 +58,9 @@
         
         .radio-btn {
             padding: 12px 0; border: 1px solid #ddd; border-radius: 8px;
-            background: #f9f9f9; color: #555; font-size: 16px; font-weight: bold;
+            background: #f9f9f9; color: #555; font-size: 14px; font-weight: bold;
             text-align: center; cursor: pointer; transition: 0.15s;
-            -webkit-tap-highlight-color: transparent; 
+            -webkit-tap-highlight-color: transparent; white-space: nowrap;
         }
         .radio-btn.active {
             background: var(--line-green); color: white;
@@ -102,14 +101,17 @@
 
     <div id="toast">提示訊息</div>
 
+    <!-- 🌟 更新：導航列新增「火災圖資」 -->
     <div class="nav-tabs">
         <div class="tab-btn active" data-idx="0">部署回報</div>
         <div class="tab-btn" data-idx="1">分隊返隊</div>
-        <div class="tab-btn" data-idx="2">管理指令</div>
+        <div class="tab-btn" data-idx="2">火災圖資</div>
+        <div class="tab-btn" data-idx="3">管理指令</div>
     </div>
 
     <div class="swipe-wrapper" id="swipe-container">
-        <!-- 部署頁 -->
+        
+        <!-- ================= 第1頁：部署頁 ================= -->
         <div class="page">
             <div class="section-title">單位選擇</div>
             <div class="card">
@@ -196,7 +198,7 @@
             <button class="btn btn-primary" id="go-deploy">確認部署回報</button>
         </div>
 
-        <!-- 撤離頁 -->
+        <!-- ================= 第2頁：撤離頁 ================= -->
         <div class="page">
             <div class="section-title">選擇返隊單位</div>
             <div class="card">
@@ -206,7 +208,39 @@
             <button class="btn btn-leave" id="go-leave">確認分隊返隊</button>
         </div>
 
-        <!-- 指令頁 -->
+        <!-- ================= 🌟 第3頁：火災圖資頁 (新增) ================= -->
+        <div class="page">
+            <div class="info-box" style="border-left: 5px solid var(--map-blue); background: #eef5ff; margin-bottom: 10px;">
+                <span style="color: var(--map-blue); font-weight: bold;" id="map-address">📍 目前無任務地點</span>
+            </div>
+
+            <div class="section-title" style="margin-top: 0;">環境與水源圖資</div>
+            <!-- 地圖區塊 (預設可套用 Google Maps iframe 或內政部圖資) -->
+            <div class="card" style="padding: 0; height: 320px; overflow: hidden; border: 1px solid var(--border-color); border-radius: 12px;">
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3614.467687002012!2d121.4604558!3d25.0521329!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3442a86851f55b93%3A0xc3f8e5b6b3e8e8e!2z5paw5YyX5biC5pS_5bqc5raI6Ziy5bGA!5e0!3m2!1szh-TW!2stw!4v1718105000000!5m2!1szh-TW!2stw" 
+                    width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+
+            <div class="section-title">圖層與資訊切換</div>
+            <div class="card">
+                <div class="grid-3" id="map-layer-group">
+                    <button class="radio-btn active">🗺️ 現場地圖</button>
+                    <button class="radio-btn">🚰 消防栓</button>
+                    <button class="radio-btn" style="color:var(--emergency-red);">⚠️ 毒化災</button>
+                </div>
+            </div>
+
+            <div class="section-title">廠區平面圖</div>
+            <div class="card" style="text-align: center; padding: 25px 16px;">
+                <div style="font-size: 30px; margin-bottom: 5px;">🗺️</div>
+                <p style="color: var(--text-gray); font-size: 14px; font-weight: bold; margin:0;">目前尚未上傳該廠區平面圖</p>
+                <button class="btn btn-primary" style="background-color: #333; margin-top: 15px; font-size: 15px; padding: 12px;">📤 從手機上傳平面圖</button>
+            </div>
+        </div>
+
+        <!-- ================= 第4頁：管理指令頁 ================= -->
         <div class="page">
             <div id="task-active" style="display:none;">
                 <div class="info-box">目前執行任務：<br><b id="task-text" style="font-size: 18px;">載入中...</b></div>
@@ -255,7 +289,6 @@
         import { getFirestore, doc, onSnapshot, collection, query, where, setDoc, deleteDoc, serverTimestamp, getDoc, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-        // 🟢 未來移交時，對方只需換這裡的 Config
         const firebaseConfig = { 
             apiKey: "AIzaSyD9oJirgoJCTU7h-ODfSpfwC80E5fqze2A", 
             authDomain: "clawone-6445c.firebaseapp.com", 
@@ -295,7 +328,7 @@
                 btn.addEventListener('click', (e) => {
                     btns.forEach(b => b.classList.remove('active'));
                     e.target.classList.add('active');
-                    if(callback) callback(e.target.dataset.val);
+                    if(callback) callback(e.target.dataset.val || e.target.innerText);
                 });
             });
         }
@@ -317,6 +350,12 @@
                 else { customInput.style.display = 'none'; }
             });
             setupRadioGroup('w-group');
+            
+            // 🌟 圖資分頁：圖層切換按鈕效果設定
+            setupRadioGroup('map-layer-group', (val) => {
+                showToast("切換圖層中...");
+                // 這裡未來可以介接 GIS API 來更換圖層
+            });
 
             // 拍照按鈕邏輯
             document.getElementById('btn-camera').onclick = () => document.getElementById('photo-input').click();
@@ -411,42 +450,44 @@
 
         userSelect.onchange = (e) => { uidInput.value = e.target.value; };
 
-       let isFirstLoad = true;
+        let isFirstLoad = true;
         let isProcessing = false; 
-        let hasActiveTask = false; // 🌟 新增：用來記錄現在到底有沒有任務
+        let hasActiveTask = false;
 
-        // 監聽任務狀態
+        // 監聽任務狀態 (更新地圖資訊與解鎖防呆)
         onSnapshot(doc(db, "system_state", "current_task"), (snap) => {
             if (isProcessing) return; 
 
             const active = document.getElementById('task-active');
             const nw = document.getElementById('task-new');
-            const btnDeploy = document.getElementById('go-deploy'); // 回報按鈕
-            const btnLeave = document.getElementById('go-leave');   // 返隊按鈕
+            const btnDeploy = document.getElementById('go-deploy'); 
+            const btnLeave = document.getElementById('go-leave');   
+            const mapAddress = document.getElementById('map-address'); // 🌟 圖資頁連動地址
 
             if (snap.exists()) {
-                hasActiveTask = true; // 狀態：有任務
+                hasActiveTask = true; 
                 document.getElementById('task-text').innerText = `${snap.data().type} / ${snap.data().address}`;
-                active.style.display = 'block'; nw.style.display = 'none';
+                if(mapAddress) mapAddress.innerText = `📍 目前任務地點：${snap.data().address}`; // 更新圖資地址
                 
-                // 🔓 解鎖回報與返隊按鈕
+                active.style.display = 'block'; nw.style.display = 'none';
                 btnDeploy.disabled = false; btnDeploy.innerText = "確認部署回報"; btnDeploy.style.opacity = "1";
                 btnLeave.disabled = false; btnLeave.innerText = "確認分隊返隊"; btnLeave.style.opacity = "1";
 
                 if (isFirstLoad) { setTimeout(() => switchTab(0), 400); isFirstLoad = false; }
             } else {
-                hasActiveTask = false; // 狀態：沒有任務
+                hasActiveTask = false; 
+                if(mapAddress) mapAddress.innerText = `📍 目前無任務，圖資待命中`; // 清除圖資地址
                 active.style.display = 'none'; nw.style.display = 'block';
                 
-                // 🔒 鎖死回報與返隊按鈕 (防呆機制)
                 btnDeploy.disabled = true; btnDeploy.innerText = "🚫 系統待命中 (請先開啟任務)"; btnDeploy.style.opacity = "0.5";
                 btnLeave.disabled = true; btnLeave.innerText = "🚫 系統待命中 (請先開啟任務)"; btnLeave.style.opacity = "0.5";
 
-                if (isFirstLoad) { setTimeout(() => switchTab(2), 400); isFirstLoad = false; }
+                // 🌟 因為多了一頁，無任務時導向第 4 頁 (index 3)
+                if (isFirstLoad) { setTimeout(() => switchTab(3), 400); isFirstLoad = false; }
             }
         });
 
-        // 🟢 初始化 LIFF
+        // 初始化 LIFF
         liff.init({ liffId: "2010239154-mvwJXGM7" }).then(() => { 
             if(!liff.isLoggedIn()) {
                 liff.login(); 
@@ -464,17 +505,18 @@
             }
         });
 
+        // 綁定上方導航列滑動事件
         const container = document.getElementById('swipe-container');
         const btns = document.querySelectorAll('.tab-btn');
-        btns.forEach(b => b.onclick = () => container.scrollTo({ left: container.clientWidth * b.dataset.idx, behavior: 'smooth' }));
+        btns.forEach(b => b.onclick = () => container.scrollTo({ left: container.clientWidth * parseInt(b.dataset.idx), behavior: 'smooth' }));
         container.onscroll = () => {
             const idx = Math.round(container.scrollLeft / container.clientWidth);
             btns.forEach((b, i) => b.classList.toggle('active', i === idx));
         };
 
-        // 🚀 核心一：確認部署回報
+        // 🚀 部署回報
         document.getElementById('go-deploy').onclick = async () => {
-            if (!hasActiveTask) return showToast("⚠️ 請先至管理頁面開啟新任務！"); // 雙重防護
+            if (!hasActiveTask) return showToast("⚠️ 請先至管理頁面開啟新任務！"); 
 
             const btn = document.getElementById('go-deploy');
             btn.disabled = true; btn.innerText = "⏳ 上傳資料中...";
@@ -561,9 +603,9 @@
             }
         };
 
-        // 🚪 核心二：返隊
+        // 🚪 返隊
         document.getElementById('go-leave').onclick = async () => {
-            if (!hasActiveTask) return showToast("⚠️ 請先至管理頁面開啟新任務！"); // 雙重防護
+            if (!hasActiveTask) return showToast("⚠️ 請先至管理頁面開啟新任務！"); 
 
             const t = document.getElementById('lv-t').value;
             isProcessing = true; 
@@ -574,23 +616,21 @@
             } catch (error) { showToast("❌ 處理失敗"); isProcessing = false; }
         };
 
-       // 🚩 核心三：開始新任務 (開啟大螢幕 + 傳送紅色啟動圖卡)
+       // 🚩 開始新任務
         document.getElementById('go-start').onclick = async () => {
             const t = document.getElementById('t-type').value;
             const a = document.getElementById('t-addr').value;
             
             if(t && a) {
                 try {
-                    // 1. 寫入 Firebase 啟動大螢幕
                     await setDoc(doc(db, "system_state", "current_task"), { type: t, address: a, startTime: serverTimestamp() });
                     
-                    // 2. 準備 LINE 的「任務啟動」Flex 圖卡
                     const flexMsg = {
                         type: "flex", altText: `🚨 任務啟動：${t}`,
                         contents: {
                             type: "bubble", size: "kilo",
                             header: {
-                                type: "box", layout: "vertical", backgroundColor: "#ff5b5b", // 紅色底
+                                type: "box", layout: "vertical", backgroundColor: "#ff5b5b", 
                                 contents: [{ type: "text", text: "🚨 任務啟動通知", weight: "bold", color: "#ffffff", size: "md" }]
                             },
                             body: {
@@ -612,7 +652,6 @@
                         }
                     };
 
-                    // 3. 傳送圖卡到群組
                     if(liff.isInClient()) {
                         liff.sendMessages([flexMsg]).then(() => {
                             showToast("🚩 任務已開啟並發送通知");
@@ -626,7 +665,7 @@
             }
         };
 
-        // ✅ 核心四：結束任務 (存檔 -> 清空版面 -> 傳送綠色結案圖卡)
+        // ✅ 結束任務
         document.getElementById('go-end').onclick = async () => {
             const btn = document.getElementById('go-end');
             btn.disabled = true; btn.innerText = "⏳ 結案歸檔清空中...";
@@ -640,7 +679,6 @@
                 }
                 const taskData = taskSnap.data();
 
-                // 處理資料庫清空與歸檔...
                 const depSnap = await getDocs(collection(db, "fire_deployments"));
                 let deployments = [];
                 depSnap.forEach(d => { deployments.push(d.data()); deleteDoc(doc(db, "fire_deployments", d.id)); });
@@ -656,13 +694,12 @@
 
                 await deleteDoc(doc(db, "system_state", "current_task"));
 
-                // 準備 LINE 的「任務結案」Flex 圖卡
                 const flexMsg = {
                     type: "flex", altText: `✅ 任務結案：${taskData.type}`,
                     contents: {
                         type: "bubble", size: "kilo",
                         header: {
-                            type: "box", layout: "vertical", backgroundColor: "#28a745", // 安全綠色底
+                            type: "box", layout: "vertical", backgroundColor: "#28a745", 
                             contents: [{ type: "text", text: "✅ 任務結案歸檔", weight: "bold", color: "#ffffff", size: "md" }]
                         },
                         body: {
@@ -684,7 +721,6 @@
                     }
                 };
 
-                // 傳送圖卡到群組
                 if(liff.isInClient()) {
                     liff.sendMessages([flexMsg]).then(() => {
                         showToast("✅ 已歸檔並發送通知");
