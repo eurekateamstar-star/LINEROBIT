@@ -27,28 +27,24 @@
         .swipe-wrapper::-webkit-scrollbar { display: none; }
         .page { flex: 0 0 100%; width: 100%; height: 100%; scroll-snap-align: start; padding: 70px 16px 40px 16px; box-sizing: border-box; overflow-y: auto; }
 
-        /* 卡片設計 - 加入防撐破機制 */
+        /* 卡片設計 */
         .card { background: #ffffff; border-radius: 12px; padding: 8px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box; }
         .section-title { font-size: 15px; color: var(--text-gray); margin: 16px 0 8px 4px; font-weight: bold; }
         
-        /* 表單列 - 單行 */
         .form-item { display: flex; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border-color); width: 100%; box-sizing: border-box; }
         .form-item:last-child { border-bottom: none; }
         .form-label { width: 90px; font-size: 18px; font-weight: bold; flex-shrink: 0; color: #333; }
         
-        /* 表單列 - 雙欄並排 */
         .form-item-split { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border-color); width: 100%; box-sizing: border-box; }
         .form-item-split:last-child { border-bottom: none; }
         .form-half { display: flex; align-items: center; flex: 1; overflow: hidden; min-width: 0; }
         .form-half .form-label { width: auto; margin-right: 8px; font-size: 18px; font-weight: bold; color: #333; flex-shrink: 0; }
         .divider-v { width: 1px; height: 24px; background-color: var(--border-color); margin: 0 16px; flex-shrink: 0; }
 
-        /* 垂直排列的表單列 (用於按鈕群組) */
         .form-item-col { display: flex; flex-direction: column; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid var(--border-color); width: 100%; box-sizing: border-box; }
         .form-item-col:last-child { border-bottom: none; }
         .form-item-col .form-label { margin-bottom: 12px; width: 100%; }
 
-        /* 統一修復 Input & Select 的寬度溢出問題 */
         select, input[type="text"] { 
             flex: 1; min-width: 0; width: 100%;
             border: none; font-size: 18px; font-weight: bold; 
@@ -57,7 +53,6 @@
             padding: 0; margin: 0;
         }
 
-        /* 單選按鈕群組設計 */
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
         .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; }
         
@@ -72,7 +67,6 @@
             border-color: var(--line-green); box-shadow: 0 2px 5px rgba(6, 199, 85, 0.3);
         }
 
-        /* 自訂人數輸入框特別樣式 */
         #p-custom {
             width: 100%; text-align: center; border: 2px solid var(--line-green);
             border-radius: 8px; padding: 12px; font-size: 18px; font-weight: bold;
@@ -82,11 +76,9 @@
         }
         #p-custom::placeholder { color: #88c89b; font-weight: normal; }
 
-        /* 移除 number 箭頭 */
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-        /* 按鈕風格 */
         .btn { width: 100%; padding: 16px; border-radius: 12px; font-size: 18px; font-weight: bold; border: none; margin-top: 10px; cursor: pointer; transition: 0.2s; box-sizing: border-box; }
         .btn:active { opacity: 0.7; transform: scale(0.98); }
         .btn-primary { background-color: var(--line-green); color: white; }
@@ -96,7 +88,6 @@
 
         .info-box { background: #fff4e5; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 5px solid var(--warning-orange); width: 100%; box-sizing: border-box;}
 
-        /* Toast 提示 */
         #toast {
             position: fixed; bottom: -60px; left: 50%; transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.8); color: white; padding: 12px 25px;
@@ -189,6 +180,18 @@
                     </div>
                 </div>
             </div>
+
+            <!-- === 現場拍照區塊 === -->
+            <div class="section-title">現場照片 (選填)</div>
+            <div class="card" style="text-align: center;">
+                <input type="file" id="photo-input" accept="image/*" capture="environment" style="display: none;">
+                <button id="btn-camera" class="btn" style="background-color: #333; color: #fff; margin-top: 0;">📸 現場拍照 / 上傳圖片</button>
+                <div id="preview-container" style="display: none; margin-top: 10px;">
+                    <img id="photo-preview" src="" style="width: 100%; border-radius: 8px; max-height: 200px; object-fit: cover;">
+                    <span style="font-size: 12px; color: var(--text-gray);">✅ 照片已準備好</span>
+                </div>
+            </div>
+            
             <button class="btn btn-primary" id="go-deploy">確認部署回報</button>
         </div>
 
@@ -248,7 +251,8 @@
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, collection, query, where, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, collection, query, where, setDoc, deleteDoc, serverTimestamp, getDoc, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         // 🟢 未來移交時，對方只需換這裡的 Config
         const firebaseConfig = { 
@@ -261,8 +265,9 @@
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
-        let userName = "未知人員"; // 儲存操作者名字
+        let userName = "未知人員"; 
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -311,7 +316,25 @@
                 else { customInput.style.display = 'none'; }
             });
             setupRadioGroup('w-group');
+
+            // 拍照按鈕邏輯
+            document.getElementById('btn-camera').onclick = () => document.getElementById('photo-input').click();
+            document.getElementById('photo-input').onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    selectedFile = file;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        document.getElementById('photo-preview').src = e.target.result;
+                        document.getElementById('preview-container').style.display = 'block';
+                        document.getElementById('btn-camera').style.display = 'none';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
         }
+
+        let selectedFile = null;
 
         function setSquadPref(brigade, team) {
             localStorage.setItem('last_b', brigade); localStorage.setItem('last_t', team);
@@ -345,12 +368,10 @@
             setTimeout(() => { container.style.scrollBehavior = 'smooth'; }, 50);
         }
 
-        // --- 處理名單與管理員載入 ---
         let userMap = {}; let adminIds = [];
         const userSelect = document.getElementById('admin-user-select');
         const uidInput = document.getElementById('admin-uid-input');
 
-        // 監聽 Firebase 中有打開過網頁的人，變成下拉選單
         onSnapshot(query(collection(db, "line_users"), where("status", "==", "active")), (snapshot) => {
             userSelect.innerHTML = '<option value="">-- 請選擇成員 --</option>';
             userMap = {};
@@ -358,14 +379,12 @@
                 const userData = doc.data();
                 userMap[doc.id] = userData.name;
                 const opt = document.createElement('option');
-                opt.value = userData.userId;
-                opt.innerText = userData.name;
+                opt.value = userData.userId; opt.innerText = userData.name;
                 userSelect.appendChild(opt);
             });
             renderAdminList();
         });
 
-        // 監聽有管理權限的人
         onSnapshot(collection(db, "authorized_admins"), (snapshot) => {
             adminIds = [];
             snapshot.forEach((doc) => { adminIds.push(doc.id); });
@@ -389,7 +408,6 @@
             });
         }
 
-        // 下拉選單連動輸入框
         userSelect.onchange = (e) => { uidInput.value = e.target.value; };
 
         let isFirstLoad = true;
@@ -406,7 +424,6 @@
             }
         });
 
-        // --- LIFF 初始化與自動註冊 ---
         // 🟢 未來移交時，對方只需換這裡的 LIFF ID
         liff.init({ liffId: "2010239154-mvwJXGM7" }).then(() => { 
             if(!liff.isLoggedIn()) {
@@ -414,15 +431,12 @@
             } else {
                 liff.getProfile().then(async (profile) => { 
                     userName = profile.displayName; 
-                    // 🌟 這裡就是自動註冊：把點開網頁的人存進 Firebase，供管理員挑選
                     try {
                         await setDoc(doc(db, "line_users", profile.userId), {
-                            userId: profile.userId,
-                            name: profile.displayName,
-                            status: "active",
-                            lastLogin: serverTimestamp()
+                            userId: profile.userId, name: profile.displayName,
+                            status: "active", lastLogin: serverTimestamp()
                         }, { merge: true });
-                    } catch (error) { console.error("註冊使用者失敗", error); }
+                    } catch (error) { console.error(error); }
                 }).catch(err => console.error(err));
                 initUI(); 
             }
@@ -436,8 +450,11 @@
             btns.forEach((b, i) => b.classList.toggle('active', i === idx));
         };
 
-       // 🚀 核心一：確認部署回報 (寫入 Firebase + 傳送超美圖卡到 LINE)
+        // 🚀 核心一：確認部署回報 (含照片上傳與 Flex Message)
         document.getElementById('go-deploy').onclick = async () => {
+            const btn = document.getElementById('go-deploy');
+            btn.disabled = true; btn.innerText = "⏳ 上傳資料中...";
+
             const b = document.getElementById('dep-b').value;
             const t = document.getElementById('dep-t').value;
             setSquadPref(b, t);
@@ -447,25 +464,31 @@
             const task = document.getElementById('task-in').value;
             const pCountVal = getPCount(); const wCountVal = getWCount();
             
-            const deploymentData = {
-                team: t, leader: leader, people: pCountVal + "人",
-                side: side, task: task, waterLines: wCountVal + "條水線", 
-                updateTime: serverTimestamp(), reportedBy: { name: userName }
-            };
+            let imageUrl = null;
 
             try {
-                // 1. 直達大螢幕：寫入 Firebase
+                if (selectedFile) {
+                    showToast("📸 正在上傳現場照片...");
+                    const storageRef = ref(storage, `fire_photos/${Date.now()}_${t}.jpg`);
+                    await uploadBytes(storageRef, selectedFile);
+                    imageUrl = await getDownloadURL(storageRef);
+                }
+
+                const deploymentData = {
+                    team: t, leader: leader, people: pCountVal + "人",
+                    side: side, task: task, waterLines: wCountVal + "條水線", 
+                    updateTime: serverTimestamp(), reportedBy: { name: userName },
+                    photoUrl: imageUrl || ""
+                };
+
                 await setDoc(doc(db, "fire_deployments", t), deploymentData);
                 
-                // 2. 準備 LINE 的 Flex Message 圖卡格式
                 const flexMsg = {
-                    type: "flex",
-                    altText: `🚨 ${t} 部署回報`, // 手機推播通知顯示的文字
+                    type: "flex", altText: `🚨 ${t} 部署回報`,
                     contents: {
-                        type: "bubble",
-                        size: "kilo",
+                        type: "bubble", size: "kilo",
                         header: {
-                            type: "box", layout: "vertical", backgroundColor: "#d90429", // 消防紅底色
+                            type: "box", layout: "vertical", backgroundColor: "#d90429",
                             contents: [{ type: "text", text: "🚨 戰術部署回報", weight: "bold", color: "#ffffff", size: "md" }]
                         },
                         body: {
@@ -488,19 +511,26 @@
                     }
                 };
 
-                // 3. 發送圖卡到 LINE 群組
+                if (imageUrl) {
+                    flexMsg.contents.hero = {
+                        type: "image", url: imageUrl, size: "full", aspectRatio: "20:13", aspectMode: "cover",
+                        action: { type: "uri", uri: imageUrl }
+                    };
+                }
+
                 if(liff.isInClient()) {
                     liff.sendMessages([flexMsg]).then(() => {
-                        showToast("🚀 圖卡已傳送，大螢幕已更新");
+                        showToast("🚀 任務圖卡已送出！");
                         setTimeout(() => liff.closeWindow(), 1000);
                     });
                 } else {
-                    showToast("測試環境無法送出圖卡");
+                    showToast("測試環境：資料已更新");
+                    btn.innerText = "完成";
                 }
                 
             } catch (error) { 
-                showToast("❌ 寫入失敗，請檢查權限"); 
-                console.error(error);
+                showToast("❌ 上傳失敗，請檢查權限"); 
+                btn.disabled = false; btn.innerText = "確認部署回報";
             }
         };
 
@@ -523,14 +553,44 @@
             } else showToast("⚠️ 請填寫完整資訊");
         };
 
+        // ✅ 核心四：結束任務 (存檔 -> 清空版面 -> 結束任務)
         document.getElementById('go-end').onclick = async () => {
+            const btn = document.getElementById('go-end');
+            btn.disabled = true; btn.innerText = "⏳ 結案歸檔清空中...";
+
             try {
+                const taskSnap = await getDoc(doc(db, "system_state", "current_task"));
+                if (!taskSnap.exists()) return showToast("目前沒有任務");
+                const taskData = taskSnap.data();
+
+                const depSnap = await getDocs(collection(db, "fire_deployments"));
+                let deployments = [];
+                depSnap.forEach(d => { deployments.push(d.data()); deleteDoc(doc(db, "fire_deployments", d.id)); });
+
+                const evacSnap = await getDocs(collection(db, "fire_evacuations"));
+                evacSnap.forEach(d => deleteDoc(doc(db, "fire_evacuations", d.id)));
+
+                await addDoc(collection(db, "history_logs"), {
+                    type: taskData.type, address: taskData.address,
+                    startTime: taskData.startTime, endTime: serverTimestamp(),
+                    deployments: deployments 
+                });
+
                 await deleteDoc(doc(db, "system_state", "current_task"));
-                send("結束任務", "✅ 任務已結案並存檔");
-            } catch (error) { showToast("❌ 結案失敗"); }
+
+                if(liff.isInClient()) {
+                    liff.sendMessages([{type:'text', text:`結束任務.${taskData.type}.${taskData.address}`}]).then(() => {
+                        showToast("✅ 已歸檔並清空大螢幕");
+                        setTimeout(() => liff.closeWindow(), 1500);
+                    });
+                } else { showToast("測試環境：已歸檔並清空"); btn.innerText = "完成"; }
+
+            } catch (error) { 
+                showToast("❌ 結案失敗，請檢查網路"); 
+                btn.disabled = false; btn.innerText = "✅ 結束任務結案存檔";
+            }
         };
 
-        // 🌟 授權管理員 (直接存入 Firebase)
         document.getElementById('go-add-admin').onclick = async () => {
             const uid = uidInput.value.trim();
             if (!uid || !uid.startsWith("U") || uid.length !== 33) return showToast("⚠️ 請選擇成員");
@@ -540,7 +600,6 @@
             } catch (error) { showToast("❌ 授權失敗"); }
         };
 
-        // 🌟 移除權限 (直接從 Firebase 刪除)
         document.getElementById('go-remove-admin').onclick = async () => {
             const uid = uidInput.value.trim();
             if (!uid || !uid.startsWith("U") || uid.length !== 33) return showToast("⚠️ 請選擇成員");
