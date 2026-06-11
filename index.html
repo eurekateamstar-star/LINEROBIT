@@ -403,6 +403,8 @@
         const storage = getStorage(app);
 
         let userName = "未知人員"; 
+        let currentUserId = null; // 新增：記錄當前使用者的 ID
+        let isAdmin = false;      // 新增：記錄當前使用者是否為管理員
         let toastTimeout;
 
         function showToast(msg) {
@@ -524,28 +526,61 @@
             renderAdminList();
         });
 
+       // ======= 1. 找到這段 authorized_admins 監聽器並替換 =======
         onSnapshot(collection(db, "authorized_admins"), (snapshot) => {
             adminIds = [];
             snapshot.forEach((doc) => { adminIds.push(doc.id); });
             renderAdminList();
+            checkAdminStatus(); // 資料更新時重新檢查權限
         });
 
-        function renderAdminList() {
-            const container = document.getElementById('authorized-admins-list');
-            if (!container) return;
-            if (adminIds.length === 0) {
-                container.innerHTML = '<span style="color: var(--text-gray); font-size: 14px;">⚠️ 目前暫無動態授權管理員</span>';
-                return;
+        // ======= 2. 新增這個權限檢查函數 (放在 renderAdminList 下方即可) =======
+        function checkAdminStatus() {
+            if (!currentUserId) return; // 尚未取得 ID
+            
+            // 如果管理員名單為空，或是當前使用者在名單內，則為管理員
+            isAdmin = adminIds.includes(currentUserId);
+            
+            const endBtn = document.getElementById('go-end');
+            const addAdminBtn = document.getElementById('go-add-admin');
+            const rmAdminBtn = document.getElementById('go-remove-admin');
+
+            if (isAdmin) {
+                // 是管理員：開放權限
+                if(endBtn) { endBtn.disabled = false; endBtn.innerText = "✅ 結束任務結案存檔"; endBtn.style.opacity = "1"; }
+                if(addAdminBtn) { addAdminBtn.disabled = false; addAdminBtn.style.opacity = "1"; }
+                if(rmAdminBtn) { rmAdminBtn.disabled = false; rmAdminBtn.style.opacity = "1"; }
+            } else {
+                // 非管理員：鎖定按鈕
+                if(endBtn) { endBtn.disabled = true; endBtn.innerText = "🚫 僅管理員可結束任務"; endBtn.style.opacity = "0.4"; }
+                
+                // 防呆機制：如果系統目前"完全沒有半個管理員"，開放所有人都可以新增第一位管理員，以免系統死鎖
+                if (adminIds.length === 0) {
+                    if(addAdminBtn) { addAdminBtn.disabled = false; addAdminBtn.style.opacity = "1"; addAdminBtn.innerText = "➕ 系統無管理員 (點此綁定)"; }
+                } else {
+                    if(addAdminBtn) { addAdminBtn.disabled = true; addAdminBtn.style.opacity = "0.4"; addAdminBtn.innerText = "🚫 無權限授權"; }
+                    if(rmAdminBtn) { rmAdminBtn.disabled = true; rmAdminBtn.style.opacity = "0.4"; }
+                }
             }
-            container.innerHTML = "";
-            adminIds.forEach((id) => {
-                const name = userMap[id] || `管理人員 (${id.substring(0, 6)}...)`;
-                const span = document.createElement('span');
-                span.style.cssText = "display: inline-block; background: #e2f0d9; color: #385723; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: bold;";
-                span.innerHTML = `👤 ${name}`;
-                container.appendChild(span);
-            });
         }
+
+        // ======= 3. 找到原有的 liff.init 區塊並替換 =======
+        liff.init({ liffId: "2010239154-mvwJXGM7" }).then(() => { 
+            if(!liff.isLoggedIn()) {
+                liff.login(); 
+            } else {
+                liff.getProfile().then(async (profile) => { 
+                    userName = profile.displayName; 
+                    currentUserId = profile.userId; // 儲存當前 User ID
+                    checkAdminStatus(); // 登入後立刻檢查一次權限
+
+                    try {
+                        await setDoc(doc(db, "line_users", profile.userId), { userId: profile.userId, name: profile.displayName, status: "active", lastLogin: serverTimestamp() }, { merge: true });
+                    } catch (error) { console.error(error); }
+                }).catch(err => console.error(err));
+                initUI(); 
+            }
+        });
 
         userSelect.onchange = (e) => { uidInput.value = e.target.value; };
 
@@ -945,6 +980,7 @@
         };
 
         document.getElementById('go-end').onclick = async () => {
+            if (!isAdmin) return showToast("⚠️ 權限不足：僅授權管理員可結束任務！"); // 雙重防護
             const btn = document.getElementById('go-end');
             btn.disabled = true; btn.innerText = "⏳ 結案歸檔清空中...";
 
@@ -987,12 +1023,15 @@
         };
 
         document.getElementById('go-add-admin').onclick = async () => {
+            if (!isAdmin && adminIds.length > 0) return showToast("⚠️ 權限不足：您不是管理員！");
             const uid = uidInput.value.trim();
             if (!uid || !uid.startsWith("U") || uid.length !== 33) return showToast("⚠️ 請選擇成員");
             try { await setDoc(doc(db, "authorized_admins", uid), { addedBy: userName, addTime: serverTimestamp() }); showToast("✅ 已成功授權為管理員"); } catch (error) { showToast("❌ 授權失敗"); }
         };
 
+        // 移除管理員按鈕
         document.getElementById('go-remove-admin').onclick = async () => {
+            if (!isAdmin) return showToast("⚠️ 權限不足：您不是管理員！");
             const uid = uidInput.value.trim();
             if (!uid || !uid.startsWith("U") || uid.length !== 33) return showToast("⚠️ 請選擇成員");
             try { await deleteDoc(doc(db, "authorized_admins", uid)); showToast("🚪 已移除該員管理權限"); } catch (error) { showToast("❌ 移除失敗"); }
