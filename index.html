@@ -320,28 +320,30 @@
                 <button class="btn btn-start" id="go-start">🚩 開始任務</button>
             </div>
 
-            <div class="section-title" style="margin-top: 24px;">管理人員設定</div>
-            <div class="card" style="padding: 12px 16px; margin-bottom: 12px; background-color: #f9f9f9; border-left: 5px solid var(--line-green);">
-                <div style="font-size: 14px; color: var(--text-gray); font-weight: bold; margin-bottom: 8px;">👑 目前已授權管理員：</div>
-                <div id="authorized-admins-list" style="display: flex; flex-wrap: wrap; gap: 6px;">
-                    <span style="color: var(--text-gray); font-size: 14px;">載入名單中...</span>
+            <!-- 新增這個外層容器，預設隱藏 -->
+            <div id="admin-management-block" style="display: none;">
+                <div class="section-title" style="margin-top: 24px;">管理人員設定</div>
+                <div class="card" style="padding: 12px 16px; margin-bottom: 12px; background-color: #f9f9f9; border-left: 5px solid var(--line-green);">
+                    <div style="font-size: 14px; color: var(--text-gray); font-weight: bold; margin-bottom: 8px;">👑 目前已授權管理員：</div>
+                    <div id="authorized-admins-list" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                        <span style="color: var(--text-gray); font-size: 14px;">載入名單中...</span>
+                    </div>
                 </div>
-            </div>
 
-            <div class="card">
-                <div class="form-item">
-                    <span class="form-label">選擇成員</span><select id="admin-user-select" style="text-align: right; color: var(--line-green);"><option value="">載入名冊中...</option></select>
+                <div class="card">
+                    <div class="form-item">
+                        <span class="form-label">選擇成員</span><select id="admin-user-select" style="text-align: right; color: var(--line-green);"><option value="">載入名冊中...</option></select>
+                    </div>
+                    <div class="form-item">
+                        <span class="form-label">使用者 ID</span><input type="text" id="admin-uid-input" placeholder="選擇成員自動填入" style="text-align: right; font-size: 14px; color: var(--text-gray);">
+                    </div>
                 </div>
-                <div class="form-item">
-                    <span class="form-label">使用者 ID</span><input type="text" id="admin-uid-input" placeholder="選擇成員自動填入" style="text-align: right; font-size: 14px; color: var(--text-gray);">
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button class="btn btn-primary" id="go-add-admin" style="margin-top: 0; background-color: var(--line-green);">➕ 授權管理員</button>
+                    <button class="btn btn-end" id="go-remove-admin" style="margin-top: 0; border: 2px solid var(--emergency-red); color: var(--emergency-red); background-color: transparent;">❌ 移除權限</button>
                 </div>
             </div>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button class="btn btn-primary" id="go-add-admin" style="margin-top: 0; background-color: var(--line-green);">➕ 授權管理員</button>
-                <button class="btn btn-end" id="go-remove-admin" style="margin-top: 0; border: 2px solid var(--emergency-red); color: var(--emergency-red); background-color: transparent;">❌ 移除權限</button>
-            </div>
-        </div>
-    </div>
+            <!-- 容器結束 -->
 
     <!-- ================= 彈出視窗區 (全域覆蓋) ================= -->
     <div id="standby-modal" class="modal">
@@ -513,7 +515,7 @@
         const userSelect = document.getElementById('admin-user-select');
         const uidInput = document.getElementById('admin-uid-input');
 
-        onSnapshot(query(collection(db, "line_users"), where("status", "==", "active")), (snapshot) => {
+       onSnapshot(query(collection(db, "line_users"), where("status", "==", "active")), (snapshot) => {
             userSelect.innerHTML = '<option value="">-- 請選擇成員 --</option>';
             userMap = {};
             snapshot.forEach((doc) => {
@@ -524,6 +526,10 @@
                 userSelect.appendChild(opt);
             });
             renderAdminList();
+        }, (error) => {
+            // 如果一般人沒權限讀取，這裡會捕捉到錯誤，就不會卡在載入中了
+            console.log("無權限讀取成員名單 (一般使用者正常現象)");
+            userSelect.innerHTML = '<option value="">-- 僅管理員可查看名單 --</option>';
         });
 
        // ======= 1. 找到這段 authorized_admins 監聽器並替換 =======
@@ -534,32 +540,27 @@
             checkAdminStatus(); // 資料更新時重新檢查權限
         });
 
-        // ======= 2. 新增這個權限檢查函數 (放在 renderAdminList 下方即可) =======
         function checkAdminStatus() {
-            if (!currentUserId) return; // 尚未取得 ID
+            if (!currentUserId) return; 
             
-            // 如果管理員名單為空，或是當前使用者在名單內，則為管理員
             isAdmin = adminIds.includes(currentUserId);
             
             const endBtn = document.getElementById('go-end');
-            const addAdminBtn = document.getElementById('go-add-admin');
-            const rmAdminBtn = document.getElementById('go-remove-admin');
+            const adminBlock = document.getElementById('admin-management-block'); // 取得管理員區塊
 
             if (isAdmin) {
-                // 是管理員：開放權限
+                // ✅ 是管理員：開放結束按鈕，並【顯示管理員設定區塊】
                 if(endBtn) { endBtn.disabled = false; endBtn.innerText = "✅ 結束任務結案存檔"; endBtn.style.opacity = "1"; }
-                if(addAdminBtn) { addAdminBtn.disabled = false; addAdminBtn.style.opacity = "1"; }
-                if(rmAdminBtn) { rmAdminBtn.disabled = false; rmAdminBtn.style.opacity = "1"; }
+                if(adminBlock) { adminBlock.style.display = "block"; } 
             } else {
-                // 非管理員：鎖定按鈕
+                // 🚫 非管理員：鎖定按鈕，並【隱藏管理員設定區塊】
                 if(endBtn) { endBtn.disabled = true; endBtn.innerText = "🚫 僅管理員可結束任務"; endBtn.style.opacity = "0.4"; }
                 
-                // 防呆機制：如果系統目前"完全沒有半個管理員"，開放所有人都可以新增第一位管理員，以免系統死鎖
+                // 防呆：如果系統裡完全沒有半個管理員，破例打開區塊讓第一個人能設定自己
                 if (adminIds.length === 0) {
-                    if(addAdminBtn) { addAdminBtn.disabled = false; addAdminBtn.style.opacity = "1"; addAdminBtn.innerText = "➕ 系統無管理員 (點此綁定)"; }
+                    if(adminBlock) { adminBlock.style.display = "block"; }
                 } else {
-                    if(addAdminBtn) { addAdminBtn.disabled = true; addAdminBtn.style.opacity = "0.4"; addAdminBtn.innerText = "🚫 無權限授權"; }
-                    if(rmAdminBtn) { rmAdminBtn.disabled = true; rmAdminBtn.style.opacity = "0.4"; }
+                    if(adminBlock) { adminBlock.style.display = "none"; }
                 }
             }
         }
