@@ -1110,6 +1110,7 @@
             try { await deleteDoc(doc(db, "authorized_admins", uid)); showToast("🚪 已移除該員管理權限"); } catch (error) { showToast("❌ 移除失敗"); }
         };
 // 👇 加入這段發送圖文小卡的程式碼 👇
+       // 👇 加入這段發送圖文小卡的程式碼 👇
         document.getElementById('btn-share-system').onclick = async () => {
             // 檢查開發者後台是否有開啟 Share Target Picker
             if (!liff.isApiAvailable('shareTargetPicker')) {
@@ -1125,7 +1126,7 @@
                         type: "bubble",
                         hero: {
                             type: "image",
-                            url: "https://images.unsplash.com/photo-1583524505974-6facd53f4597?auto=format&fit=crop&w=800&q=80", // 預設的消防車背景圖，可自行替換
+                            url: "https://images.unsplash.com/photo-1583524505974-6facd53f4597?auto=format&fit=crop&w=800&q=80", 
                             size: "full",
                             aspectRatio: "20:13",
                             aspectMode: "cover"
@@ -1147,11 +1148,10 @@
                                     type: "button",
                                     style: "primary",
                                     height: "sm",
-                                    color: "#d90429", // 消防紅按鈕
+                                    color: "#d90429", 
                                     action: {
                                         type: "uri",
-                                        label": "🚀 點此開啟系統看板",
-                                        // ⚠️⚠️⚠️ 注意：下面這裡一定要換成你自己的 LIFF 網址 ⚠️⚠️⚠️
+                                        label: "🚀 點此開啟系統看板", // 🌟 這裡的引號錯誤修復了！
                                         uri: "https://liff.line.me/2010239154-mvwJXGM7" 
                                     }
                                 }
@@ -1173,6 +1173,7 @@
             }
         };
         // 👆 加入這段發送圖文小卡的程式碼 👆
+
         function send(txt, successMsg) {
             if(liff.isInClient()) { liff.sendMessages([{type:'text', text:txt}]).then(() => { showToast(successMsg); setTimeout(() => liff.closeWindow(), 1000); });
             } else { showToast("測試環境無法送出"); console.log("即將送出: ", txt); }
