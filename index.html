@@ -761,7 +761,7 @@
             }
         });
 
-        // ================= 戰術看板：返隊待命與歷史 =================
+       // ================= 戰術看板：返隊待命與歷史 =================
         onSnapshot(collection(db, "fire_evacuations"), (snap) => {
             const container = document.getElementById('evac-container');
             const btn = document.getElementById('evac-btn');
@@ -770,7 +770,11 @@
                 evacCount++; const data = d.data();
                 const time = data.evacTime ? data.evacTime.toDate().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }) : "--:--";
                 const evacBy = (data.evacBy && data.evacBy.name) ? data.evacBy.name : "未知";
-                container.innerHTML += `<div class="log-item" style="border-left: 3px solid var(--evac-orange); padding-left: 8px;"><span><b style="color:#fff;">${data.team}</b> (${data.people})</span><span style="font-size: 11px; color: #888;">👤${evacBy} | 返隊於 ${time}</span></div>`;
+                
+                // 【修正】：判斷如果有存人數才顯示括號，如果沒有(撤離通常沒有)就不顯示
+                const pStr = data.people ? ` (${data.people})` : ""; 
+                
+                container.innerHTML += `<div class="log-item" style="border-left: 3px solid var(--evac-orange); padding-left: 8px;"><span><b style="color:#fff;">${data.team}</b>${pStr}</span><span style="font-size: 11px; color: #888;">👤${evacBy} | 返隊於 ${time}</span></div>`;
             });
             btn.innerText = `返隊待命 (${evacCount})`;
             if (evacCount === 0) container.innerHTML = "目前無返隊待命分隊";
