@@ -443,15 +443,19 @@
             });
         }
 
-        function initUI() {
+       function initUI() {
+            // 處理部署與返隊的大隊選單
             ['dep-b', 'lv-b'].forEach(id => {
                 const sel = document.getElementById(id);
+                sel.innerHTML = ""; // 🌟 新增這行：先清空選項，防止重複疊加
                 for (let b in fireData) sel.options.add(new Option(b, b));
                 sel.onchange = (e) => setSquadPref(e.target.value, fireData[e.target.value][0] + "分隊");
             });
             setSquadPref(localStorage.getItem('last_b') || "第二大隊", localStorage.getItem('last_t') || "新莊分隊");
 
+            // 處理開啟新任務的大隊選單
             const tAddrSel = document.getElementById('t-addr');
+            tAddrSel.innerHTML = ""; // 🌟 新增這行：先清空選項，防止重複疊加
             for (let b in fireData) { tAddrSel.options.add(new Option(b, b)); }
             
             setupRadioGroup('p-group', (val) => {
