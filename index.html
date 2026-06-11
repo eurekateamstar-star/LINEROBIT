@@ -390,7 +390,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, collection, query, where, setDoc, deleteDoc, serverTimestamp, getDoc, getDocs, addDoc, limit, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyD9oJirgoJCTU7h-ODfSpfwC80E5fqze2A", 
@@ -938,20 +938,29 @@
             
             const t = document.getElementById('lv-t').value;
             
-            try {
-                // 更新 Firebase 資料庫
+          try {
+                // 1. 先去抓該單位的部署資料，看有沒有照片
+                const depDocRef = doc(db, "fire_deployments", t);
+                const depSnap = await getDoc(depDocRef);
+                if (depSnap.exists()) {
+                    const data = depSnap.data();
+                    // 如果有照片網址，就從 Storage 徹底刪除實體檔案
+                    if (data.photoUrl) {
+                        const photoRef = ref(storage, data.photoUrl);
+                        await deleteObject(photoRef).catch(e => console.log("照片可能已刪除", e));
+                    }
+                }
+
+                // 2. 更新 Firebase 資料庫 (記錄返隊、刪除部署)
                 await setDoc(doc(db, "fire_evacuations", t), { team: t, evacTime: serverTimestamp(), evacBy: { name: userName } });
-                await deleteDoc(doc(db, "fire_deployments", t));
+                await deleteDoc(depDocRef);
                 
                 // 組合 Flex Message 圖卡 (橘色警示風格)
                 const flexMsg = {
                     type: "flex", altText: `🚪 ${t} 返隊回報`,
                     contents: {
                         type: "bubble", size: "kilo",
-                        header: { 
-                            type: "box", layout: "vertical", backgroundColor: "#fd7e14", 
-                            contents: [{ type: "text", text: "🚪 單位返隊通知", weight: "bold", color: "#ffffff", size: "md" }] 
-                        },
+                        header: { type: "box", layout: "vertical", backgroundColor: "#fd7e14", contents: [{ type: "text", text: "🚪 單位返隊通知", weight: "bold", color: "#ffffff", size: "md" }] },
                         body: {
                             type: "box", layout: "vertical", spacing: "md",
                             contents: [
@@ -965,20 +974,15 @@
 
                 // 送出訊息並關閉視窗
                 if(liff.isInClient()) {
-                    liff.sendMessages([flexMsg]).then(() => { 
-                        showToast("🚪 返隊圖卡已送出！"); 
-                        setTimeout(() => liff.closeWindow(), 1000); 
-                    });
+                    liff.sendMessages([flexMsg]).then(() => { showToast("🚪 返隊圖卡已送出！(照片已清除)"); setTimeout(() => liff.closeWindow(), 1000); });
                 } else { 
-                    showToast("測試環境：資料已更新，圖卡已生成"); 
-                    btn.disabled = false; btn.innerText = "確認分隊返隊"; 
-                    isProcessing = false; 
+                    showToast("測試環境：資料已更新，照片已清除"); 
+                    btn.disabled = false; btn.innerText = "確認分隊返隊"; isProcessing = false; 
                 }
 
             } catch (error) { 
                 showToast("❌ 處理失敗，請檢查網路狀態"); 
-                btn.disabled = false; btn.innerText = "確認分隊返隊"; 
-                isProcessing = false; 
+                btn.disabled = false; btn.innerText = "確認分隊返隊"; isProcessing = false; 
             }
         };
 
@@ -1023,13 +1027,31 @@
                 if (!taskSnap.exists()) { showToast("目前沒有任務"); btn.disabled = false; btn.innerText = "✅ 結束任務結案存檔"; return; }
                 const taskData = taskSnap.data();
 
+                // 1. 抓取所有還在部署中的單位資料
                 const depSnap = await getDocs(collection(db, "fire_deployments"));
                 let deployments = [];
-                depSnap.forEach(d => { deployments.push(d.data()); deleteDoc(doc(db, "fire_deployments", d.id)); });
+                const deletePromises = []; // 用來裝所有要刪除的任務(包含照片與資料)
+
+                depSnap.forEach(d => { 
+                    const data = d.data();
+                    deployments.push(data); 
+                    
+                    // 如果這個單位有傳照片，把刪除照片的指令加入排程
+                    if (data.photoUrl) {
+                        const photoRef = ref(storage, data.photoUrl);
+                        deletePromises.push(deleteObject(photoRef).catch(e => console.log("照片清除異常", e)));
+                    }
+                    // 把刪除部署資料的指令加入排程
+                    deletePromises.push(deleteDoc(doc(db, "fire_deployments", d.id))); 
+                });
+
+                // 2. 一口氣執行所有刪除作業 (資料 + 照片)
+                await Promise.all(deletePromises);
 
                 const evacSnap = await getDocs(collection(db, "fire_evacuations"));
                 evacSnap.forEach(d => deleteDoc(doc(db, "fire_evacuations", d.id)));
 
+                // 3. 寫入歷史紀錄並清除當前任務狀態
                 await addDoc(collection(db, "history_logs"), { type: taskData.type, address: taskData.address, startTime: taskData.startTime, endTime: serverTimestamp(), deployments: deployments });
                 await deleteDoc(doc(db, "system_state", "current_task"));
 
@@ -1043,7 +1065,7 @@
                             contents: [
                                 { type: "box", layout: "horizontal", contents: [{ type: "text", text: "任務類型", color: "#888888", size: "sm", flex: 2 }, { type: "text", text: taskData.type, weight: "bold", size: "sm", color: "#111111", flex: 5 }]},
                                 { type: "box", layout: "horizontal", contents: [{ type: "text", text: "執行地點", color: "#888888", size: "sm", flex: 2 }, { type: "text", text: taskData.address, weight: "bold", size: "sm", color: "#111111", flex: 5 }]},
-                                { type: "box", layout: "horizontal", margin: "md", contents: [{ type: "text", text: "📌 大螢幕看板已清空，戰術資料已封存至歷史紀錄。", color: "#aaaaaa", size: "xs", wrap: true }]}
+                                { type: "box", layout: "horizontal", margin: "md", contents: [{ type: "text", text: "📌 看板已清空，現場照片已自雲端銷毀釋放空間，戰術紀錄已封存。", color: "#aaaaaa", size: "xs", wrap: true }]}
                             ]
                         }
                     }
@@ -1051,10 +1073,9 @@
 
                 if(liff.isInClient()) {
                     liff.sendMessages([flexMsg]).then(() => { showToast("✅ 已歸檔並發送通知"); setTimeout(() => liff.closeWindow(), 1500); });
-                } else { showToast("測試環境：已歸檔並清空"); btn.innerText = "完成"; }
+                } else { showToast("測試環境：已歸檔、照片已清空"); btn.innerText = "完成"; }
 
             } catch (error) { showToast("❌ 結案失敗，請檢查網路"); console.error(error); btn.disabled = false; btn.innerText = "✅ 結束任務結案存檔"; }
-        };
 
         document.getElementById('go-add-admin').onclick = async () => {
             if (!isAdmin && adminIds.length > 0) return showToast("⚠️ 權限不足：您不是管理員！");
