@@ -254,13 +254,25 @@
     </div>
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script type="module">
+   <script type="module">
+        // 1. 補上 setDoc, deleteDoc, serverTimestamp (用於寫入資料庫)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, collection, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, collection, query, where, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyD9oJirgoJCTU7h-ODfSpfwC80E5fqze2A", authDomain: "clawone-6445c.firebaseapp.com", projectId: "clawone-6445c", storageBucket: "clawone-6445c.firebasestorage.app", messagingSenderId: "945236029933", appId: "1:945236029933:web:f93ffb9e6f8b41aebd37e4" };
+        // 🟢 移交給別人時，請他們換成自己的 Firebase Config
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD9oJirgoJCTU7h-ODfSpfwC80E5fqze2A", 
+            authDomain: "clawone-6445c.firebaseapp.com", 
+            projectId: "clawone-6445c", 
+            storageBucket: "clawone-6445c.firebasestorage.app", 
+            messagingSenderId: "945236029933", 
+            appId: "1:945236029933:web:f93ffb9e6f8b41aebd37e4" 
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+
+        // 用來儲存操作者的 LINE 名字
+        let userName = "未知人員";
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -279,7 +291,6 @@
             "特搜大隊": ["慈福", "德音", "秀峰"]
         };
 
-        // --- 建立單選按鈕群組邏輯 ---
         function setupRadioGroup(groupId, callback) {
             const group = document.getElementById(groupId);
             if(!group) return;
@@ -302,20 +313,16 @@
             setSquadPref(localStorage.getItem('last_b') || "第二大隊", localStorage.getItem('last_t') || "新莊分隊");
 
             const tAddrSel = document.getElementById('t-addr');
-            for (let b in fireData) {
-                tAddrSel.options.add(new Option(b, b));
-            }
+            for (let b in fireData) { tAddrSel.options.add(new Option(b, b)); }
             
             setupRadioGroup('p-group', (val) => {
                 const customInput = document.getElementById('p-custom');
                 if (val === 'custom') {
-                    customInput.style.display = 'block';
-                    customInput.focus();
+                    customInput.style.display = 'block'; customInput.focus();
                 } else {
                     customInput.style.display = 'none';
                 }
             });
-
             setupRadioGroup('w-group');
         }
 
@@ -333,10 +340,7 @@
             const activeBtn = document.querySelector('#p-group .radio-btn.active');
             if (!activeBtn) return "5";
             const val = activeBtn.dataset.val;
-            if (val === 'custom') {
-                return document.getElementById('p-custom').value || "0";
-            }
-            return val;
+            return val === 'custom' ? (document.getElementById('p-custom').value || "0") : val;
         }
 
         function getWCount() {
@@ -356,6 +360,7 @@
 
         let isFirstLoad = true;
 
+        // 監聽任務狀態
         onSnapshot(doc(db, "system_state", "current_task"), (snap) => {
             const active = document.getElementById('task-active'), nw = document.getElementById('task-new');
             if (snap.exists()) {
@@ -368,51 +373,20 @@
             }
         });
 
-        let userMap = {};
-        let adminIds = [];
+        let userMap = {}; let adminIds = [];
         const userSelect = document.getElementById('admin-user-select');
         const uidInput = document.getElementById('admin-uid-input');
 
-        onSnapshot(query(collection(db, "line_users"), where("status", "==", "active")), (snapshot) => {
-            userSelect.innerHTML = '<option value="">-- 請選擇成員 --</option>';
-            userMap = {};
-            snapshot.forEach((doc) => {
-                const userData = doc.data();
-                userMap[doc.id] = userData.name;
-                const opt = document.createElement('option');
-                opt.value = userData.userId;
-                opt.innerText = userData.name;
-                userSelect.appendChild(opt);
-            });
-            renderAdminList();
-        });
-
-        onSnapshot(collection(db, "authorized_admins"), (snapshot) => {
-            adminIds = [];
-            snapshot.forEach((doc) => { adminIds.push(doc.id); });
-            renderAdminList();
-        });
-
-        function renderAdminList() {
-            const container = document.getElementById('authorized-admins-list');
-            if (!container) return;
-            if (adminIds.length === 0) {
-                container.innerHTML = '<span style="color: var(--text-gray); font-size: 14px;">⚠️ 目前暫無動態授權管理員</span>';
-                return;
+        // 🟢 移交給別人時，請他們換成自己的 LIFF ID
+        liff.init({ liffId: "2010239154-mvwJXGM7" }).then(() => { 
+            if(!liff.isLoggedIn()) {
+                liff.login(); 
+            } else {
+                // 自動抓取帶隊官的 LINE 名字
+                liff.getProfile().then(profile => { userName = profile.displayName; }).catch(err => console.error(err));
+                initUI(); 
             }
-            container.innerHTML = "";
-            adminIds.forEach((id) => {
-                const name = userMap[id] || `管理人員 (${id.substring(0, 6)}...)`;
-                const span = document.createElement('span');
-                span.style.cssText = "display: inline-block; background: #e2f0d9; color: #385723; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: bold;";
-                span.innerHTML = `👤 ${name}`;
-                container.appendChild(span);
-            });
-        }
-
-        userSelect.onchange = (e) => { uidInput.value = e.target.value; };
-
-        liff.init({ liffId: "2010239154-mvwJXGM7" }).then(() => { if(!liff.isLoggedIn()) liff.login(); initUI(); });
+        });
 
         const container = document.getElementById('swipe-container');
         const btns = document.querySelectorAll('.tab-btn');
@@ -422,8 +396,8 @@
             btns.forEach((b, i) => b.classList.toggle('active', i === idx));
         };
 
-        // --- 送出指令 ---
-        document.getElementById('go-deploy').onclick = () => {
+        // 🚀 核心一：確認部署回報 (直接寫入 Firebase)
+        document.getElementById('go-deploy').onclick = async () => {
             const b = document.getElementById('dep-b').value;
             const t = document.getElementById('dep-t').value;
             setSquadPref(b, t);
@@ -431,50 +405,66 @@
             const leader = document.getElementById('leader-in').value;
             const side = document.getElementById('side-in').value;
             const task = document.getElementById('task-in').value;
-            
             const pCountVal = getPCount();
             const wCountVal = getWCount();
             
-            // ⚠️ 訊息格式: 分隊.帶隊官.人數.方位.任務.水線
-            const msg = `${t}.${leader}.${pCountVal}人.${side}.${task}.${wCountVal}條水線`;
-            send(msg, "🚀 資訊已送出");
+            const deploymentData = {
+                team: t, leader: leader, people: pCountVal + "人",
+                side: side, task: task, waterLines: wCountVal + "條水線", 
+                updateTime: serverTimestamp(), reportedBy: { name: userName }
+            };
+
+            try {
+                // 1. 直達大螢幕：寫入 Firebase
+                await setDoc(doc(db, "fire_deployments", t), deploymentData);
+                // 2. 留存紀錄：在 LINE 群組發言
+                const msg = `${t}.${leader}.${pCountVal}人.${side}.${task}.${wCountVal}條水線`;
+                send(msg, "🚀 資訊已更新至大螢幕");
+            } catch (error) { showToast("❌ 寫入失敗，請檢查權限"); console.error(error); }
         };
 
-        document.getElementById('go-leave').onclick = () => {
+        // 🚪 核心二：分隊返隊 (從部署名單刪除，移至返隊名單)
+        document.getElementById('go-leave').onclick = async () => {
             const t = document.getElementById('lv-t').value;
-            send(`${t}.離開`, `🚪 ${t} 已返隊`);
+            try {
+                await setDoc(doc(db, "fire_evacuations", t), { team: t, evacTime: serverTimestamp(), evacBy: { name: userName } });
+                await deleteDoc(doc(db, "fire_deployments", t));
+                send(`${t}.離開`, `🚪 ${t} 已返隊`);
+            } catch (error) { showToast("❌ 處理失敗"); }
         };
 
-        document.getElementById('go-start').onclick = () => {
+        // 🚩 核心三：開始新任務
+        document.getElementById('go-start').onclick = async () => {
             const t = document.getElementById('t-type').value, a = document.getElementById('t-addr').value;
-            if(t && a) send(`開始任務.${t}.${a}`, "🚩 任務已開啟");
-            else showToast("⚠️ 請填寫完整資訊");
+            if(t && a) {
+                try {
+                    await setDoc(doc(db, "system_state", "current_task"), { type: t, address: a, startTime: serverTimestamp() });
+                    send(`開始任務.${t}.${a}`, "🚩 任務已開啟");
+                } catch (error) { showToast("❌ 啟動任務失敗"); }
+            } else showToast("⚠️ 請填寫完整資訊");
         };
 
-        document.getElementById('go-end').onclick = () => send("結束任務", "✅ 任務已結案");
-
-        document.getElementById('go-add-admin').onclick = () => {
-            const uid = uidInput.value.trim();
-            if (!uid || !uid.startsWith("U") || uid.length !== 33) return showToast("⚠️ 請選擇成員或輸入正確的 UID");
-            send(`授權.${uid}`, "🚀 已發送授權管理員指令");
+        // ✅ 核心四：結束任務
+        document.getElementById('go-end').onclick = async () => {
+            try {
+                await deleteDoc(doc(db, "system_state", "current_task"));
+                send("結束任務", "✅ 任務已結案並存檔");
+            } catch (error) { showToast("❌ 結案失敗"); }
         };
 
-        document.getElementById('go-remove-admin').onclick = () => {
-            const uid = uidInput.value.trim();
-            if (!uid || !uid.startsWith("U") || uid.length !== 33) return showToast("⚠️ 請選擇成員或輸入正確的 UID");
-            send(`取消授權.${uid}`, "🚪 已發送移除權限指令");
-        };
-
+        // 發送文字到 LINE 群組的共用函式
         function send(txt, successMsg) {
             if(liff.isInClient()) {
                 liff.sendMessages([{type:'text', text:txt}]).then(() => {
                     showToast(successMsg);
-                    setTimeout(() => liff.closeWindow(), 1000);
+                    setTimeout(() => liff.closeWindow(), 1000); // 1秒後自動關閉畫面
                 });
             } else {
                 showToast("測試環境無法送出"); console.log("即將送出: ", txt);
             }
         }
+
+        // (授權管理員的功能若為純前端架構，可暫時不需修改，因為主要看 Firebase rules)
     </script>
 </body>
 </html>
