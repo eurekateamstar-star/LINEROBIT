@@ -859,15 +859,58 @@
             }
         };
 
-        document.getElementById('go-leave').onclick = async () => {
+       document.getElementById('go-leave').onclick = async () => {
             if (!hasActiveTask) return showToast("⚠️ 請先至管理頁面開啟新任務！"); 
-            const t = document.getElementById('lv-t').value;
+            
+            const btn = document.getElementById('go-leave');
+            btn.disabled = true; 
+            btn.innerText = "⏳ 處理中...";
             isProcessing = true; 
+            
+            const t = document.getElementById('lv-t').value;
+            
             try {
+                // 更新 Firebase 資料庫
                 await setDoc(doc(db, "fire_evacuations", t), { team: t, evacTime: serverTimestamp(), evacBy: { name: userName } });
                 await deleteDoc(doc(db, "fire_deployments", t));
-                send(`${t}.離開`, `🚪 ${t} 已返隊`);
-            } catch (error) { showToast("❌ 處理失敗"); isProcessing = false; }
+                
+                // 組合 Flex Message 圖卡 (橘色警示風格)
+                const flexMsg = {
+                    type: "flex", altText: `🚪 ${t} 返隊回報`,
+                    contents: {
+                        type: "bubble", size: "kilo",
+                        header: { 
+                            type: "box", layout: "vertical", backgroundColor: "#fd7e14", 
+                            contents: [{ type: "text", text: "🚪 單位返隊通知", weight: "bold", color: "#ffffff", size: "md" }] 
+                        },
+                        body: {
+                            type: "box", layout: "vertical", spacing: "md",
+                            contents: [
+                                { type: "box", layout: "horizontal", contents: [{ type: "text", text: "返隊單位", color: "#888888", size: "sm", flex: 2 }, { type: "text", text: t, weight: "bold", size: "sm", color: "#111111", flex: 5 }]},
+                                { type: "box", layout: "horizontal", contents: [{ type: "text", text: "回報人員", color: "#888888", size: "sm", flex: 2 }, { type: "text", text: userName, weight: "bold", size: "sm", color: "#111111", flex: 5 }]},
+                                { type: "box", layout: "horizontal", margin: "md", contents: [{ type: "text", text: "📌 該單位已從火場撤出，系統已轉入「返隊待命」名單。", color: "#aaaaaa", size: "xs", wrap: true }]}
+                            ]
+                        }
+                    }
+                };
+
+                // 送出訊息並關閉視窗
+                if(liff.isInClient()) {
+                    liff.sendMessages([flexMsg]).then(() => { 
+                        showToast("🚪 返隊圖卡已送出！"); 
+                        setTimeout(() => liff.closeWindow(), 1000); 
+                    });
+                } else { 
+                    showToast("測試環境：資料已更新，圖卡已生成"); 
+                    btn.disabled = false; btn.innerText = "確認分隊返隊"; 
+                    isProcessing = false; 
+                }
+
+            } catch (error) { 
+                showToast("❌ 處理失敗，請檢查網路狀態"); 
+                btn.disabled = false; btn.innerText = "確認分隊返隊"; 
+                isProcessing = false; 
+            }
         };
 
         document.getElementById('go-start').onclick = async () => {
