@@ -1076,7 +1076,7 @@
                 } else { showToast("測試環境：已歸檔、照片已清空"); btn.innerText = "完成"; }
 
             } catch (error) { showToast("❌ 結案失敗，請檢查網路"); console.error(error); btn.disabled = false; btn.innerText = "✅ 結束任務結案存檔"; }
-
+};
         document.getElementById('go-add-admin').onclick = async () => {
             if (!isAdmin && adminIds.length > 0) return showToast("⚠️ 權限不足：您不是管理員！");
             const uid = uidInput.value.trim();
