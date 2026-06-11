@@ -544,26 +544,73 @@
             } catch (error) { showToast("❌ 處理失敗"); }
         };
 
+       // 🚩 核心三：開始新任務 (開啟大螢幕 + 傳送紅色啟動圖卡)
         document.getElementById('go-start').onclick = async () => {
-            const t = document.getElementById('t-type').value, a = document.getElementById('t-addr').value;
+            const t = document.getElementById('t-type').value;
+            const a = document.getElementById('t-addr').value;
+            
             if(t && a) {
                 try {
+                    // 1. 寫入 Firebase 啟動大螢幕
                     await setDoc(doc(db, "system_state", "current_task"), { type: t, address: a, startTime: serverTimestamp() });
-                    send(`開始任務.${t}.${a}`, "🚩 任務已開啟");
-                } catch (error) { showToast("❌ 啟動任務失敗"); }
-            } else showToast("⚠️ 請填寫完整資訊");
+                    
+                    // 2. 準備 LINE 的「任務啟動」Flex 圖卡
+                    const flexMsg = {
+                        type: "flex", altText: `🚨 任務啟動：${t}`,
+                        contents: {
+                            type: "bubble", size: "kilo",
+                            header: {
+                                type: "box", layout: "vertical", backgroundColor: "#ff5b5b", // 紅色底
+                                contents: [{ type: "text", text: "🚨 任務啟動通知", weight: "bold", color: "#ffffff", size: "md" }]
+                            },
+                            body: {
+                                type: "box", layout: "vertical", spacing: "md",
+                                contents: [
+                                    { type: "box", layout: "horizontal", contents: [
+                                        { type: "text", text: "任務類型", color: "#888888", size: "sm", flex: 2 },
+                                        { type: "text", text: t, weight: "bold", size: "sm", color: "#111111", flex: 5 }
+                                    ]},
+                                    { type: "box", layout: "horizontal", contents: [
+                                        { type: "text", text: "發生地點", color: "#888888", size: "sm", flex: 2 },
+                                        { type: "text", text: a, weight: "bold", size: "sm", color: "#e63946", flex: 5 }
+                                    ]},
+                                    { type: "box", layout: "horizontal", margin: "md", contents: [
+                                        { type: "text", text: "📌 指揮系統看板已上線，請各單位確實回報部署。", color: "#aaaaaa", size: "xs", wrap: true }
+                                    ]}
+                                ]
+                            }
+                        }
+                    };
+
+                    // 3. 傳送圖卡到群組
+                    if(liff.isInClient()) {
+                        liff.sendMessages([flexMsg]).then(() => {
+                            showToast("🚩 任務已開啟並發送通知");
+                            setTimeout(() => liff.closeWindow(), 1000);
+                        });
+                    } else { showToast("測試環境：任務已開啟"); }
+
+                } catch (error) { showToast("❌ 啟動任務失敗，請檢查權限"); }
+            } else {
+                showToast("⚠️ 請填寫完整資訊");
+            }
         };
 
-        // ✅ 核心四：結束任務 (存檔 -> 清空版面 -> 結束任務)
+        // ✅ 核心四：結束任務 (存檔 -> 清空版面 -> 傳送綠色結案圖卡)
         document.getElementById('go-end').onclick = async () => {
             const btn = document.getElementById('go-end');
             btn.disabled = true; btn.innerText = "⏳ 結案歸檔清空中...";
 
             try {
                 const taskSnap = await getDoc(doc(db, "system_state", "current_task"));
-                if (!taskSnap.exists()) return showToast("目前沒有任務");
+                if (!taskSnap.exists()) {
+                    showToast("目前沒有任務");
+                    btn.disabled = false; btn.innerText = "✅ 結束任務結案存檔";
+                    return;
+                }
                 const taskData = taskSnap.data();
 
+                // 處理資料庫清空與歸檔...
                 const depSnap = await getDocs(collection(db, "fire_deployments"));
                 let deployments = [];
                 depSnap.forEach(d => { deployments.push(d.data()); deleteDoc(doc(db, "fire_deployments", d.id)); });
@@ -579,15 +626,48 @@
 
                 await deleteDoc(doc(db, "system_state", "current_task"));
 
+                // 準備 LINE 的「任務結案」Flex 圖卡
+                const flexMsg = {
+                    type: "flex", altText: `✅ 任務結案：${taskData.type}`,
+                    contents: {
+                        type: "bubble", size: "kilo",
+                        header: {
+                            type: "box", layout: "vertical", backgroundColor: "#28a745", // 安全綠色底
+                            contents: [{ type: "text", text: "✅ 任務結案歸檔", weight: "bold", color: "#ffffff", size: "md" }]
+                        },
+                        body: {
+                            type: "box", layout: "vertical", spacing: "md",
+                            contents: [
+                                { type: "box", layout: "horizontal", contents: [
+                                    { type: "text", text: "任務類型", color: "#888888", size: "sm", flex: 2 },
+                                    { type: "text", text: taskData.type, weight: "bold", size: "sm", color: "#111111", flex: 5 }
+                                ]},
+                                { type: "box", layout: "horizontal", contents: [
+                                    { type: "text", text: "執行地點", color: "#888888", size: "sm", flex: 2 },
+                                    { type: "text", text: taskData.address, weight: "bold", size: "sm", color: "#111111", flex: 5 }
+                                ]},
+                                { type: "box", layout: "horizontal", margin: "md", contents: [
+                                    { type: "text", text: "📌 大螢幕看板已清空，戰術資料已封存至歷史紀錄。", color: "#aaaaaa", size: "xs", wrap: true }
+                                ]}
+                            ]
+                        }
+                    }
+                };
+
+                // 傳送圖卡到群組
                 if(liff.isInClient()) {
-                    liff.sendMessages([{type:'text', text:`結束任務.${taskData.type}.${taskData.address}`}]).then(() => {
-                        showToast("✅ 已歸檔並清空大螢幕");
+                    liff.sendMessages([flexMsg]).then(() => {
+                        showToast("✅ 已歸檔並發送通知");
                         setTimeout(() => liff.closeWindow(), 1500);
                     });
-                } else { showToast("測試環境：已歸檔並清空"); btn.innerText = "完成"; }
+                } else { 
+                    showToast("測試環境：已歸檔並清空"); 
+                    btn.innerText = "完成"; 
+                }
 
             } catch (error) { 
                 showToast("❌ 結案失敗，請檢查網路"); 
+                console.error(error);
                 btn.disabled = false; btn.innerText = "✅ 結束任務結案存檔";
             }
         };
