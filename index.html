@@ -512,10 +512,11 @@
         }
 
         let userMap = {}; let adminIds = [];
-        const userSelect = document.getElementById('admin-user-select');
+      const userSelect = document.getElementById('admin-user-select');
         const uidInput = document.getElementById('admin-uid-input');
 
-       onSnapshot(query(collection(db, "line_users"), where("status", "==", "active")), (snapshot) => {
+        // ================= 1. 監聽全體人員名單 =================
+        onSnapshot(query(collection(db, "line_users"), where("status", "==", "active")), (snapshot) => {
             userSelect.innerHTML = '<option value="">-- 請選擇成員 --</option>';
             userMap = {};
             snapshot.forEach((doc) => {
@@ -525,21 +526,45 @@
                 opt.value = userData.userId; opt.innerText = userData.name;
                 userSelect.appendChild(opt);
             });
-            renderAdminList();
+            renderAdminList(); 
         }, (error) => {
-            // 如果一般人沒權限讀取，這裡會捕捉到錯誤，就不會卡在載入中了
             console.log("無權限讀取成員名單 (一般使用者正常現象)");
             userSelect.innerHTML = '<option value="">-- 僅管理員可查看名單 --</option>';
+            renderAdminList(); // 就算沒權限讀取，也要執行以消除「載入中」的文字
         });
 
-       // ======= 1. 找到這段 authorized_admins 監聽器並替換 =======
+        // ================= 2. 監聽管理員名單 =================
         onSnapshot(collection(db, "authorized_admins"), (snapshot) => {
             adminIds = [];
             snapshot.forEach((doc) => { adminIds.push(doc.id); });
-            renderAdminList();
-            checkAdminStatus(); // 資料更新時重新檢查權限
+            renderAdminList(); 
+            checkAdminStatus(); 
         });
 
+        // ================= 3. 【這就是你遺失的函數】負責把名單畫到畫面上 =================
+        function renderAdminList() {
+            const container = document.getElementById('authorized-admins-list');
+            if (!container) return;
+
+            // 如果目前沒有任何管理員
+            if (adminIds.length === 0) {
+                container.innerHTML = '<span style="color: var(--warning-orange); font-size: 14px;">⚠️ 目前暫無動態授權管理員</span>';
+                return;
+            }
+
+            // 如果有管理員，清空並產生標籤
+            container.innerHTML = "";
+            adminIds.forEach((id) => {
+                // 如果權限不夠讀不到 userMap 的名字，就顯示 ID 前 6 碼
+                const name = userMap[id] || `管理人員 (${id.substring(0, 6)}...)`;
+                const span = document.createElement('span');
+                span.style.cssText = "display: inline-block; background: #e2f0d9; color: #385723; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: bold;";
+                span.innerHTML = `👑 ${name}`;
+                container.appendChild(span);
+            });
+        }
+
+        // ================= 4. 檢查當前操作者的權限 =================
         function checkAdminStatus() {
             if (!currentUserId) return; 
             
