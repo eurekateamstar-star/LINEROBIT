@@ -411,21 +411,42 @@
 
         userSelect.onchange = (e) => { uidInput.value = e.target.value; };
 
-        let isFirstLoad = true;
+       let isFirstLoad = true;
+        let isProcessing = false; 
+        let hasActiveTask = false; // 🌟 新增：用來記錄現在到底有沒有任務
 
+        // 監聽任務狀態
         onSnapshot(doc(db, "system_state", "current_task"), (snap) => {
-            const active = document.getElementById('task-active'), nw = document.getElementById('task-new');
+            if (isProcessing) return; 
+
+            const active = document.getElementById('task-active');
+            const nw = document.getElementById('task-new');
+            const btnDeploy = document.getElementById('go-deploy'); // 回報按鈕
+            const btnLeave = document.getElementById('go-leave');   // 返隊按鈕
+
             if (snap.exists()) {
+                hasActiveTask = true; // 狀態：有任務
                 document.getElementById('task-text').innerText = `${snap.data().type} / ${snap.data().address}`;
                 active.style.display = 'block'; nw.style.display = 'none';
+                
+                // 🔓 解鎖回報與返隊按鈕
+                btnDeploy.disabled = false; btnDeploy.innerText = "確認部署回報"; btnDeploy.style.opacity = "1";
+                btnLeave.disabled = false; btnLeave.innerText = "確認分隊返隊"; btnLeave.style.opacity = "1";
+
                 if (isFirstLoad) { setTimeout(() => switchTab(0), 400); isFirstLoad = false; }
             } else {
+                hasActiveTask = false; // 狀態：沒有任務
                 active.style.display = 'none'; nw.style.display = 'block';
+                
+                // 🔒 鎖死回報與返隊按鈕 (防呆機制)
+                btnDeploy.disabled = true; btnDeploy.innerText = "🚫 系統待命中 (請先開啟任務)"; btnDeploy.style.opacity = "0.5";
+                btnLeave.disabled = true; btnLeave.innerText = "🚫 系統待命中 (請先開啟任務)"; btnLeave.style.opacity = "0.5";
+
                 if (isFirstLoad) { setTimeout(() => switchTab(2), 400); isFirstLoad = false; }
             }
         });
 
-        // 🟢 未來移交時，對方只需換這裡的 LIFF ID
+        // 🟢 初始化 LIFF
         liff.init({ liffId: "2010239154-mvwJXGM7" }).then(() => { 
             if(!liff.isLoggedIn()) {
                 liff.login(); 
@@ -451,10 +472,13 @@
             btns.forEach((b, i) => b.classList.toggle('active', i === idx));
         };
 
-        // 🚀 核心一：確認部署回報 (含照片上傳與 Flex Message)
+        // 🚀 核心一：確認部署回報
         document.getElementById('go-deploy').onclick = async () => {
+            if (!hasActiveTask) return showToast("⚠️ 請先至管理頁面開啟新任務！"); // 雙重防護
+
             const btn = document.getElementById('go-deploy');
             btn.disabled = true; btn.innerText = "⏳ 上傳資料中...";
+            isProcessing = true; 
 
             const b = document.getElementById('dep-b').value;
             const t = document.getElementById('dep-t').value;
@@ -527,21 +551,27 @@
                 } else {
                     showToast("測試環境：資料已更新");
                     btn.innerText = "完成";
+                    isProcessing = false;
                 }
                 
             } catch (error) { 
                 showToast("❌ 上傳失敗，請檢查權限"); 
                 btn.disabled = false; btn.innerText = "確認部署回報";
+                isProcessing = false;
             }
         };
 
+        // 🚪 核心二：返隊
         document.getElementById('go-leave').onclick = async () => {
+            if (!hasActiveTask) return showToast("⚠️ 請先至管理頁面開啟新任務！"); // 雙重防護
+
             const t = document.getElementById('lv-t').value;
+            isProcessing = true; 
             try {
                 await setDoc(doc(db, "fire_evacuations", t), { team: t, evacTime: serverTimestamp(), evacBy: { name: userName } });
                 await deleteDoc(doc(db, "fire_deployments", t));
                 send(`${t}.離開`, `🚪 ${t} 已返隊`);
-            } catch (error) { showToast("❌ 處理失敗"); }
+            } catch (error) { showToast("❌ 處理失敗"); isProcessing = false; }
         };
 
        // 🚩 核心三：開始新任務 (開啟大螢幕 + 傳送紅色啟動圖卡)
